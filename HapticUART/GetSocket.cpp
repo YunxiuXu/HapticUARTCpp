@@ -5,8 +5,11 @@
 
 #pragma comment (lib, "ws2_32.lib")
 
+int data = 0;
+
 void runServer()
 {
+    
     std::string ipAddress = "127.0.0.1";
     int port = 1233;
 
@@ -82,7 +85,7 @@ void runServer()
 
         // 循环接收数据
         unsigned char buf[4096];
-
+        
         while (true)
         {
             ZeroMemory(buf, 4096);
@@ -98,8 +101,14 @@ void runServer()
                 std::cout << "Client disconnected " << std::endl;
                 break;
             }
-
-            std::cout << "Received: " << std::string((char*)buf, 0, bytesReceived) << std::endl;
+            
+            //std::cout << "Received: " << std::string((char*)buf, 0, bytesReceived) << std::endl;
+            //modify the control command here
+            if(buf[0] == 0x01)
+                std::cout << "command 01: " << std::string((char*)buf, 0, bytesReceived) << std::endl;
+            else if (buf[0] == 0x02)
+                std::cout << "command02: " << std::string((char*)buf, 0, bytesReceived) << std::endl;
+            data += 1;
         }
 
         // 关闭套接字

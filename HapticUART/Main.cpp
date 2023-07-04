@@ -7,13 +7,10 @@
 
 #define M_PI 3.14159265
 
+int aaa = 0;
 // 打印函数
-void printHelloWorld() {
+void socketThread() {
     runServer();
-    //while (true) {
-    //    std::cout << "helloworld" << std::endl;
-    //    std::this_thread::sleep_for(std::chrono::seconds(1));
-    //}
 }
 
 int main()
@@ -31,11 +28,12 @@ int main()
     auto next_time = start_time;
 
     // 创建新线程并运行printHelloWorld函数
-    std::thread printThread(printHelloWorld);
+    std::thread printThread(socketThread);
 
     while (true) {
-        /////////////////////////Code for socket
 
+        /////////////////////////Code for socket
+        // std::cout << data << std::endl;
         /////////////////////////Code for serial
         next_time += std::chrono::milliseconds(1);
         double elapsed_time = std::chrono::duration<double>(next_time - start_time).count();
