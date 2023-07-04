@@ -18,5 +18,13 @@
     <ClCompile Include="HapticUART.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GetSocket.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GetSocket.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
