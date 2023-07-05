@@ -1,4 +1,5 @@
 #include "GetSocket.h"
+#include "motorControl.h"
 #include <iostream>
 #include <WS2tcpip.h>
 #include <string>
@@ -101,13 +102,12 @@ void runServer()
                 std::cout << "Client disconnected " << std::endl;
                 break;
             }
-            
+            unsigned char num = buf[4];
             //std::cout << "Received: " << std::string((char*)buf, 0, bytesReceived) << std::endl;
             //modify the control command here
-            if(buf[0] == 0x01)
-                std::cout << "command 01: " << std::string((char*)buf, 0, bytesReceived) << std::endl;
-            else if (buf[0] == 0x02)
-                std::cout << "command02: " << std::string((char*)buf, 0, bytesReceived) << std::endl;
+            motorPushByteValue[1] = 0;
+            std::cout << "command 01: " << std::string((char*)buf, 0, bytesReceived) << std::endl;
+            motorPushByteValue[1] = num;
             data += 1;
         }
 

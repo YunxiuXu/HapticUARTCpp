@@ -24,12 +24,18 @@
     <ClCompile Include="serial.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="motorControl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GetSocket.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="serial.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="motorControl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
