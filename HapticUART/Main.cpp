@@ -16,7 +16,7 @@ void socketThread() {
     runServer();
 }
 
-float t = 0;
+float t_global = 0;
 //std::mutex mtx;  // 用于保护 functionCalls 的互斥量
 
 int main()
@@ -55,7 +55,7 @@ int main()
         for (const HapticFunctionCall& fc : functionCalls) {
             std::lock_guard<std::mutex> lock(mtx);
             auto tmp = fc;
-            double result = fc.function(t, fc.args);
+            double result = fc.function(t_global, fc.args);
 
             // 输出结果
             std::cout << result << std::endl;
@@ -76,9 +76,9 @@ int main()
         //}
 
         std::this_thread::sleep_until(next_time);
-        t += 0.001;
+        t_global += 0.001;
         if (functionCalls.empty()) {
-            t = 0;
+            t_global = 0;
         }
     }
 

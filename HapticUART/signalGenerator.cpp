@@ -17,14 +17,15 @@ double calculateSin(double amplitude, double frequency, double phaseShift, doubl
     return amplitude * std::sin(radians);
 }
 
-float basicCollision(float L, float B, float freq, float t) {
+float basicCollision(float t0, float L, float B, float freq, float t) {
+    t = t - t0;
     float result = L * std::exp(-B * t) * std::sin(2 * 3.14159 * freq * t);
     return result;
 }
 
 
-void addFunctionCall(const std::function<double(double, const std::tuple<double, double, double>&)>& function, double a, double b, double c) {
+void addFunctionCall(const std::function<double(double, const std::tuple<float, double, double, double>&)>& function, int t0, double a, double b, double c) {
     std::lock_guard<std::mutex> lock(mtx);  // 在这个作用域中锁定互斥量
-    functionCalls.push_back(HapticFunctionCall{ function, std::make_tuple(a, b, c) });
+    functionCalls.push_back(HapticFunctionCall{ function, std::make_tuple(t0, a, b, c) });
 }  // 退出作用域时，析构函数自动解锁互斥量
 

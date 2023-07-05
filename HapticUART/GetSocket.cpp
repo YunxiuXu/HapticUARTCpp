@@ -8,6 +8,7 @@
 #pragma comment (lib, "ws2_32.lib")
 
 int data = 0;
+extern float t_global;
 
 void runServer()
 {
@@ -108,7 +109,7 @@ void runServer()
             //std::cout << "command 01: " << std::string((char*)buf, 0, bytesReceived) << std::endl;
             //motorPushByteValue[1] = num;
             if(buf[2] == 0x02)
-                addFunctionCall([](double t, const std::tuple<double, double, double>& args) { return basicCollision(std::get<0>(args), std::get<1>(args), std::get<2>(args), t); }, 14, 309, 67);
+                addFunctionCall([](double t, const std::tuple<float, double, double, double>& args) { return basicCollision(std::get<0>(args), std::get<1>(args), std::get<2>(args), std::get<3>(args), t); }, t_global, 14, 309, 67);
             data += 1;
         }
 
