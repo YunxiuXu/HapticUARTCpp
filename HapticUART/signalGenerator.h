@@ -5,8 +5,7 @@
 #include <functional>
 #include <tuple>
 #include <iostream>
-
-
+#include <mutex>
 
 struct HapticFunctionCall {
     std::function<double(double, const std::tuple<double, double, double>&)> function;
@@ -14,6 +13,7 @@ struct HapticFunctionCall {
 };
 
 extern std::vector<HapticFunctionCall> functionCalls;
+extern std::mutex mtx; // 互斥锁，保护functionCalls一边写入一边读取
 
 double calculateExponential(double base, double exponent, double t);
 double calculateSin(double amplitude, double frequency, double phaseShift, double t);

@@ -2,6 +2,7 @@
 #include <chrono>
 #include <thread>
 #include <cmath>
+#include <mutex>
 #include "serial.h"
 #include "GetSocket.h"
 #include "motorControl.h"
@@ -16,6 +17,7 @@ void socketThread() {
 }
 
 float t = 0;
+//std::mutex mtx;  // 用于保护 functionCalls 的互斥量
 
 int main()
 {
@@ -51,6 +53,8 @@ int main()
         //std::cout << motorCurrentValue[0] << std::endl;
         
         for (const HapticFunctionCall& fc : functionCalls) {
+            std::lock_guard<std::mutex> lock(mtx);
+            auto tmp = fc;
             double result = fc.function(t, fc.args);
 
             // 输出结果

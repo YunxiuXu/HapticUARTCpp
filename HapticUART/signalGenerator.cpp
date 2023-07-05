@@ -1,9 +1,11 @@
 #include <iostream>
 #include <cmath>
+#include <mutex>
 #include "signalGenerator.h"
 
 
 std::vector<HapticFunctionCall> functionCalls;//所有的震动事件写在这里
+std::mutex mtx;
 
 double calculateExponential(double base, double exponent, double t) {
     double result = std::pow(base, exponent * t);
@@ -20,7 +22,9 @@ float basicCollision(float L, float B, float freq, float t) {
     return result;
 }
 
+
 void addFunctionCall(const std::function<double(double, const std::tuple<double, double, double>&)>& function, double a, double b, double c) {
+    std::lock_guard<std::mutex> lock(mtx);  // 在这个作用域中锁定互斥量
     functionCalls.push_back(HapticFunctionCall{ function, std::make_tuple(a, b, c) });
-}
+}  // 退出作用域时，析构函数自动解锁互斥量
 
