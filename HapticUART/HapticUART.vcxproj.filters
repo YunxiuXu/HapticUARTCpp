@@ -27,6 +27,9 @@
     <ClCompile Include="motorControl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="signalGenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GetSocket.h">
@@ -36,6 +39,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="motorControl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="signalGenerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

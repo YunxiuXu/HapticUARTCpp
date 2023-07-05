@@ -1,5 +1,6 @@
 #include "GetSocket.h"
 #include "motorControl.h"
+#include "signalGenerator.h"
 #include <iostream>
 #include <WS2tcpip.h>
 #include <string>
@@ -103,11 +104,11 @@ void runServer()
                 break;
             }
             unsigned char num = buf[4];
-            //std::cout << "Received: " << std::string((char*)buf, 0, bytesReceived) << std::endl;
-            //modify the control command here
-            motorPushByteValue[1] = 0;
-            std::cout << "command 01: " << std::string((char*)buf, 0, bytesReceived) << std::endl;
-            motorPushByteValue[1] = num;
+            //motorPushByteValue[1] = 0;
+            //std::cout << "command 01: " << std::string((char*)buf, 0, bytesReceived) << std::endl;
+            //motorPushByteValue[1] = num;
+            if(buf[2] == 0x02)
+                addFunctionCall([](double t, const std::tuple<double, double, double>& args) { return basicCollision(std::get<0>(args), std::get<1>(args), std::get<2>(args), t); }, 14, 309, 67);
             data += 1;
         }
 
