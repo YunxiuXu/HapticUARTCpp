@@ -108,8 +108,12 @@ void runServer()
             //motorPushByteValue[1] = 0;
             //std::cout << "command 01: " << std::string((char*)buf, 0, bytesReceived) << std::endl;
             //motorPushByteValue[1] = num;
-            if(buf[2] == 0x02)
-                addFunctionCall([](double t, const std::tuple<float, double, double, double>& args) { return basicCollision(std::get<0>(args), std::get<1>(args), std::get<2>(args), std::get<3>(args), t); }, t_global, 14, 309, 67);
+            if (buf[2] == 0x02) {
+                std::lock_guard<std::mutex> lock(mtx);
+                //addFunctionCall([](double t, const std::tuple<float, double, double, double>& args) { return basicCollision(std::get<0>(args), std::get<1>(args), std::get<2>(args), std::get<3>(args), t); }, t_global, 14, 309, 67);
+                functionPoolVector.push_back({0x02, t_global, 14, 309, 67 });
+            }
+                
             data += 1;
         }
 

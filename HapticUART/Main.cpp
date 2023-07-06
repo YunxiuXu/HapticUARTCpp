@@ -52,15 +52,33 @@ int main()
         auto result = intToHexProtocol(motorCurrentValue[0]);
         //std::cout << motorCurrentValue[0] << std::endl;
         
-        for (const HapticFunctionCall& fc : functionCalls) {
-            std::lock_guard<std::mutex> lock(mtx);
-            auto tmp = fc;
-            double result = fc.function(t_global, fc.args);
+        //for (const HapticFunctionCall& fc : functionCalls) {
+        //    std::lock_guard<std::mutex> lock(mtx);
+        //    auto tmp = fc;
+        //    double result = fc.function(t_global, fc.args);
 
-            // 输出结果
-            std::cout << result << std::endl;
+
+        //    // 输出结果
+        //    std::cout << result << std::endl;
+        //}
+        for (std::vector<float>& v : functionPoolVector) {
+            std::lock_guard<std::mutex> lock(mtx);
+            if (v[0] == 0x02) {
+                auto result = basicCollision(v[1], v[2], v[3], v[4], t_global);
+                std::cout << result[0] << std::endl;
+                if (result[1] == 0) // if life over
+                    v[0] = 0xFF; //dead
+            }
         }
 
+        for (auto it = functionPoolVector.begin(); it != functionPoolVector.end(); ) { // clear 0xFF
+            if (!it->empty() && (*it)[0] == 0xFF) {
+                it = functionPoolVector.erase(it);
+            }
+            else {
+                ++it;
+            }
+        }
 
         unsigned char data_to_sends[] = { 0x31, result[0], result[1], result[0], result[1], 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
         DWORD bytes_to_send = sizeof(data_to_sends);
@@ -77,7 +95,7 @@ int main()
 
         std::this_thread::sleep_until(next_time);
         t_global += 0.001;
-        if (functionCalls.empty()) {
+        if (functionPoolVector.empty()) {
             t_global = 0;
         }
     }
