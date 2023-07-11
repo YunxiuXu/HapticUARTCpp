@@ -19,7 +19,7 @@ double calculateSin(double amplitude, double frequency, double phaseShift, doubl
 }
 
 std::vector<float> basicCollision(float t0, float L, float B, float freq, float t) {
-    float lifeTime = 0.5f;
+    float lifeTime = 0.2f;
     t = t - t0;
     float result = L * std::exp(-B * t) * std::sin(2 * 3.14159 * freq * t);
     std::vector<float> vec;

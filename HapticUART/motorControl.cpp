@@ -1,7 +1,8 @@
 #include"serial.h"
 
-unsigned char motorPushByteValue[40] = { 0 };
+unsigned char val[40] = { 0 }; 
 int motorCurrentValue[20] = { 0 };
+int motorBaseCurrentValue[20] = { 0 };
 
 int uchar_to_int(unsigned char high, unsigned char low)
 {
@@ -11,6 +12,9 @@ int uchar_to_int(unsigned char high, unsigned char low)
 }
 
 void pushValue2Current() {
-    motorCurrentValue[0] = uchar_to_int(motorPushByteValue[0], motorPushByteValue[1]);
+    motorCurrentValue[0] = uchar_to_int(val[0], val[1]);
 }
 
+void clearMotorCurrentValue() {
+    std::memset(motorCurrentValue, 0, sizeof(motorCurrentValue));
+}

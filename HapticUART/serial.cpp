@@ -54,12 +54,15 @@ bool SerialPort::writeData(const unsigned char* data, DWORD size)
 }
 
 std::vector<unsigned char> intToHexProtocol(int num) {
+    std::vector<unsigned char> result(2);
     // Check if the number is in range -2048 to 2048
     if (num < -2048 || num > 2048) {
-        throw std::invalid_argument("The number must be in range -2048 to 2048.");
+        //throw std::invalid_argument("The number must be in range -2048 to 2048.");
+        std::cout << "The number must be in range -2048 to 2048." << std::endl;
+        num = 2048;
     }
 
-    std::vector<unsigned char> result(2);
+    
 
     if (num >= 0) {
         // If the number is non-negative, it is represented directly.
