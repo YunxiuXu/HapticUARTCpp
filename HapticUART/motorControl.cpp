@@ -18,3 +18,7 @@ void pushValue2Current() {
 void clearMotorCurrentValue() {
     std::memset(motorCurrentValue, 0, sizeof(motorCurrentValue));
 }
+
+void clearMotorBaseCurrentValue() {
+    std::memset(motorBaseCurrentValue, 0, sizeof(motorBaseCurrentValue));
+}

@@ -66,8 +66,9 @@ int main()
             for (std::vector<float>& v : functionPoolVector) {
                 
                 if (v[0] == 0x01) {
-                    motorBaseCurrentValue[(int)v[1]] = v[3]; // ! Not+=, because Unity may send multiple packages, so 0x01 must write at front
+                    motorBaseCurrentValue[(int)v[1]] = ((int)v[2] << 8) + v[3]; // ! Not+=, because Unity may send multiple packages, so 0x01 must write at front
                     v[0] = 0xFF; //life over flag
+                    std::cout << motorBaseCurrentValue[(int)v[1]] << std::endl;
                 }
                 else if (v[0] == 0x02) {
 
