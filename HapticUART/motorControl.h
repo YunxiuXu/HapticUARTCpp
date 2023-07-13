@@ -9,6 +9,6 @@ extern int motorBaseCurrentValue[20]; //0x01's value will in there, can only cha
 void pushValue2Current();
 int uchar_to_int(unsigned char high, unsigned char low);
 void clearMotorCurrentValue();
-
+void clearMotorBaseCurrentValue();
 
 
