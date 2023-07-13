@@ -101,6 +101,7 @@ void runServer()
             if (bytesReceived == 0)
             {
                 std::cout << "Client disconnected " << std::endl;
+                clearMotorBaseCurrentValue();
                 break;
             }
 
