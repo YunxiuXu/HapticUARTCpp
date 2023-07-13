@@ -21,4 +21,8 @@ void clearMotorCurrentValue() {
 
 void clearMotorBaseCurrentValue() {
     std::memset(motorBaseCurrentValue, 0, sizeof(motorBaseCurrentValue));
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> a5a45c828dc6eae964681e4e13041b9fcb6f547b

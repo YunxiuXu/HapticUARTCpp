@@ -65,6 +65,7 @@ int main()
                     //}
                         
                     v[0] = 0xFF; //life over flag
+                    std::cout << motorBaseCurrentValue[(int)v[1]] << std::endl;
                 }
                 else if (v[0] == 0x02) {
 
