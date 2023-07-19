@@ -60,9 +60,9 @@ int main()
                     auto receivedCurrentValue = ((int)v[2] << 8) + (int)v[3];
                     motorBaseCurrentValue[(int)v[1]] = receivedCurrentValue; // ! Not+=, because Unity may send multiple packages, so 0x01 must write at front
                     
-                    if ((int)v[1] == 4) {
-                        std::cout << receivedCurrentValue << std::endl;
-                    }
+                    //if ((int)v[1] == 4) {
+                    //    std::cout << receivedCurrentValue << std::endl;
+                    //}
                     v[0] = 0xFF; //life over flag
                     //std::cout << motorBaseCurrentValue[(int)v[1]] << std::endl;
                 }
