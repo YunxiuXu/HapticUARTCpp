@@ -17,7 +17,7 @@ void socketThread() {
 }
 
 float t_global = 0;
-int motorNum = 4;//单次控制的电机数量
+int motorNum = 8;//单次控制的电机数量
 //std::mutex mtx;  // 用于保护 functionCalls 的互斥量
 
 
@@ -25,7 +25,7 @@ int main()
 {
     double frequency = 3; // 调整这个值以改变频率
 
-    SerialPort serial("COM3", 2000000); // 创建串口对象
+    SerialPort serial("COM9", 2000000); // 创建串口对象
 
     if (!serial.isOpen()) {
         std::cerr << "ERROR: Unable to open serial port.\n";
@@ -60,7 +60,7 @@ int main()
                     auto receivedCurrentValue = ((int)v[2] << 8) + (int)v[3];
                     motorBaseCurrentValue[(int)v[1]] = receivedCurrentValue; // ! Not+=, because Unity may send multiple packages, so 0x01 must write at front
                     
-                    //if ((int)v[1] == 4) {
+                    //if ((int)v[1] == 5) {
                     //    std::cout << receivedCurrentValue << std::endl;
                     //}
                     v[0] = 0xFF; //life over flag
@@ -91,14 +91,16 @@ int main()
         }
         for (int num = 0; num < motorNum; num++) { //最终电流转换为电机控制参数
             auto result = intToHexProtocol(motorCurrentValue[num] + motorBaseCurrentValue[num]);
+            //if(num == 6)
+                //std::cout << motorCurrentValue[num] + motorBaseCurrentValue[num] << std::endl;
             val[num * 2] = result[0];
             val[num * 2 + 1] = result[1];
         }
 
         
+        
 
-
-        unsigned char data_to_sends[] = { 0x31, val[0], val[1], val[2], val[3], val[4], val[5], val[6], val[7], val[8], val[9], 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+        unsigned char data_to_sends[] = { 0x31, val[0], val[1], val[2], val[3], val[4], val[5], val[6], val[7], val[8], val[9], val[10], val[11], val[12], val[13], val[14], val[15]};
         DWORD bytes_to_send = sizeof(data_to_sends);
         DWORD bytes_written = 0;
 
