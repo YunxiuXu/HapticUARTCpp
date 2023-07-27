@@ -70,7 +70,7 @@ int main()
 
                     auto result = basicCollision(v[2], v[3], v[4], v[5], t_global);
 
-                    motorCurrentValue[(int)v[1]] += 100 * result[0] + 50; //motor No. , must float to int
+                    motorCurrentValue[(int)v[1]] += 150 * result[0]; //motor No. , must float to int
 
                     if (result[1] == 0) // if life over
                         v[0] = 0xFF; //life over flag
@@ -91,16 +91,22 @@ int main()
         }
         for (int num = 0; num < motorNum; num++) { //最终电流转换为电机控制参数
             auto result = intToHexProtocol(motorCurrentValue[num] + motorBaseCurrentValue[num]);
-            //if(num == 6)
-                //std::cout << motorCurrentValue[num] + motorBaseCurrentValue[num] << std::endl;
+            if(num == 5)
+                std::cout << motorCurrentValue[num] + motorBaseCurrentValue[num] << std::endl;
             val[num * 2] = result[0];
             val[num * 2 + 1] = result[1];
         }
 
         
         
-        //unsigned char data_to_sends[] = { 0x31, 0, 0, 0, 0, 0, 0, 0,0,0, 0, val[10], val[11], 0, 0, val[14], val[15]};
-        unsigned char data_to_sends[] = { 0x31, val[0], val[1], val[2], val[3], val[4], val[5], val[6], val[7], val[8], val[9], val[10], val[11], val[12], val[13], val[14], val[15]};
+        unsigned char data_to_sends[] = { 0x31, 0, 0, 0, 0, 0, 0, 0,0,0, 0, val[10], val[11], 0, 0, val[14], val[15]};
+        //unsigned char data_to_sends[] = { 0x31, val[0], val[1], val[2], val[3], val[4], val[5], val[6], val[7], val[8], val[9], val[10], val[11], val[12], val[13], val[14], val[15]};
+        //for (int i = 0; i < sizeof(data_to_sends); i++) {
+        //    if (i == 0)
+        //        data_to_sends[0] = 0x31;
+        //    data_to_sends[i] =  val[i];
+        //}
+        
         DWORD bytes_to_send = sizeof(data_to_sends);
         DWORD bytes_written = 0;
 
