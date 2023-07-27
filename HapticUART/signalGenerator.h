@@ -13,7 +13,7 @@
 //};
 
 //extern std::vector<HapticFunctionCall> functionCalls;
-extern std::mutex mtx; // »¥³âËø£¬±£»¤functionCallsÒ»±ßĞ´ÈëÒ»±ß¶ÁÈ¡
+extern std::mutex mtx; // äº’æ–¥é”ï¼Œä¿æŠ¤functionCallsä¸€è¾¹å†™å…¥ä¸€è¾¹è¯»å–
 extern std::vector<std::vector<float>> functionPoolVector; // function pool
 
 double calculateExponential(double base, double exponent, double t);

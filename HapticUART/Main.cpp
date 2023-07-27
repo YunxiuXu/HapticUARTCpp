@@ -11,21 +11,21 @@
 #define M_PI 3.14159265
 
 int aaa = 0;
-// ´òÓ¡º¯Êı
+// æ‰“å°å‡½æ•°
 void socketThread() {
     runServer();
 }
 
 float t_global = 0;
-int motorNum = 8;//µ¥´Î¿ØÖÆµÄµç»úÊıÁ¿
-//std::mutex mtx;  // ÓÃÓÚ±£»¤ functionCalls µÄ»¥³âÁ¿
+int motorNum = 8;//å•æ¬¡æ§åˆ¶çš„ç”µæœºæ•°é‡
+//std::mutex mtx;  // ç”¨äºä¿æŠ¤ functionCalls çš„äº’æ–¥é‡
 
 
 int main()
 {
-    double frequency = 3; // µ÷ÕûÕâ¸öÖµÒÔ¸Ä±äÆµÂÊ
+    double frequency = 3; // è°ƒæ•´è¿™ä¸ªå€¼ä»¥æ”¹å˜é¢‘ç‡
 
-    SerialPort serial("COM9", 2000000); // ´´½¨´®¿Ú¶ÔÏó
+    SerialPort serial("COM4", 2000000); // åˆ›å»ºä¸²å£å¯¹è±¡
 
     if (!serial.isOpen()) {
         std::cerr << "ERROR: Unable to open serial port.\n";
@@ -35,7 +35,7 @@ int main()
     auto start_time = std::chrono::steady_clock::now();
     auto next_time = start_time;
 
-    // ´´½¨ĞÂÏß³Ì²¢ÔËĞĞprintHelloWorldº¯Êı
+    // åˆ›å»ºæ–°çº¿ç¨‹å¹¶è¿è¡ŒprintHelloWorldå‡½æ•°
     std::thread printThread(socketThread);
 
 
@@ -89,7 +89,7 @@ int main()
                 }
             }
         }
-        for (int num = 0; num < motorNum; num++) { //×îÖÕµçÁ÷×ª»»Îªµç»ú¿ØÖÆ²ÎÊı
+        for (int num = 0; num < motorNum; num++) { //æœ€ç»ˆç”µæµè½¬æ¢ä¸ºç”µæœºæ§åˆ¶å‚æ•°
             auto result = intToHexProtocol(motorCurrentValue[num] + motorBaseCurrentValue[num]);
             //if(num == 6)
                 //std::cout << motorCurrentValue[num] + motorBaseCurrentValue[num] << std::endl;
@@ -99,7 +99,7 @@ int main()
 
         
         
-
+        //unsigned char data_to_sends[] = { 0x31, 0, 0, 0, 0, 0, 0, 0,0,0, 0, val[10], val[11], 0, 0, val[14], val[15]};
         unsigned char data_to_sends[] = { 0x31, val[0], val[1], val[2], val[3], val[4], val[5], val[6], val[7], val[8], val[9], val[10], val[11], val[12], val[13], val[14], val[15]};
         DWORD bytes_to_send = sizeof(data_to_sends);
         DWORD bytes_written = 0;
@@ -124,7 +124,7 @@ int main()
         
     }
 
-    // µÈ´ıprintThreadÏß³Ì½áÊø
+    // ç­‰å¾…printThreadçº¿ç¨‹ç»“æŸ
     printThread.join();
 
     return 0;

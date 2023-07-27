@@ -15,7 +15,7 @@ void runServer()
     std::string ipAddress = "127.0.0.1";
     int port = 1233;
 
-    // ³õÊ¼»¯Winsock
+    // åˆå§‹åŒ–Winsock
     WSAData wsData;
     WORD ver = MAKEWORD(2, 2);
     int wsOk = WSAStartup(ver, &wsData);
@@ -27,7 +27,7 @@ void runServer()
 
     while (true)
     {
-        // ´´½¨Ì×½Ó×Ö
+        // åˆ›å»ºå¥—æ¥å­—
         SOCKET listening = socket(AF_INET, SOCK_STREAM, 0);
         if (listening == INVALID_SOCKET)
         {
@@ -36,7 +36,7 @@ void runServer()
             return;
         }
 
-        // °ó¶¨IPµØÖ·ºÍ¶Ë¿Úµ½Ì×½Ó×Ö
+        // ç»‘å®šIPåœ°å€å’Œç«¯å£åˆ°å¥—æ¥å­—
         sockaddr_in hint;
         hint.sin_family = AF_INET;
         hint.sin_port = htons(port);
@@ -50,7 +50,7 @@ void runServer()
             return;
         }
 
-        // ÉèÖÃÌ×½Ó×ÖÎª¼àÌı×´Ì¬
+        // è®¾ç½®å¥—æ¥å­—ä¸ºç›‘å¬çŠ¶æ€
         if (listen(listening, SOMAXCONN) == SOCKET_ERROR)
         {
             std::cerr << "Can't listen! Quitting" << std::endl;
@@ -59,7 +59,7 @@ void runServer()
             return;
         }
 
-        // ½ÓÊÜÁ¬½Ó
+        // æ¥å—è¿æ¥
         sockaddr_in client;
         int clientSize = sizeof(client);
         SOCKET clientSocket = accept(listening, (sockaddr*)&client, &clientSize);
@@ -82,10 +82,10 @@ void runServer()
             std::cout << host << " connected on port " << svc << std::endl;
         }
 
-        // ¹Ø±Õ¼àÌıÌ×½Ó×Ö
+        // å…³é—­ç›‘å¬å¥—æ¥å­—
         closesocket(listening);
 
-        // Ñ­»·½ÓÊÕÊı¾İ
+        // å¾ªç¯æ¥æ”¶æ•°æ®
         unsigned char buf[4096];
         
         while (true)
@@ -138,10 +138,10 @@ void runServer()
          
         }
 
-        // ¹Ø±ÕÌ×½Ó×Ö
+        // å…³é—­å¥—æ¥å­—
         closesocket(clientSocket);
     }
 
-    // ÇåÀíWinsock
+    // æ¸…ç†Winsock
     WSACleanup();
 }

@@ -4,7 +4,7 @@
 #include "signalGenerator.h"
 
 
-//std::vector<HapticFunctionCall> functionCalls;//ËùÓĞµÄÕğ¶¯ÊÂ¼şĞ´ÔÚÕâÀï
+//std::vector<HapticFunctionCall> functionCalls;//æ‰€æœ‰çš„éœ‡åŠ¨äº‹ä»¶å†™åœ¨è¿™é‡Œ
 std::mutex mtx;
 std::vector<std::vector<float>> functionPoolVector;
 
@@ -33,7 +33,7 @@ std::vector<float> basicCollision(float t0, float L, float B, float freq, float 
 
 
 //void addFunctionCall(const std::function<double(double, const std::tuple<float, double, double, double>&)>& function, int t0, double a, double b, double c) {
-//    std::lock_guard<std::mutex> lock(mtx);  // ÔÚÕâ¸ö×÷ÓÃÓòÖĞËø¶¨»¥³âÁ¿
+//    std::lock_guard<std::mutex> lock(mtx);  // åœ¨è¿™ä¸ªä½œç”¨åŸŸä¸­é”å®šäº’æ–¥é‡
 //    functionCalls.push_back(HapticFunctionCall{ function, std::make_tuple(t0, a, b, c) });
-//}  // ÍË³ö×÷ÓÃÓòÊ±£¬Îö¹¹º¯Êı×Ô¶¯½âËø»¥³âÁ¿
+//}  // é€€å‡ºä½œç”¨åŸŸæ—¶ï¼Œææ„å‡½æ•°è‡ªåŠ¨è§£é”äº’æ–¥é‡
 //
