@@ -129,10 +129,15 @@ void runServer()
                     //addFunctionCall([](double t, const std::tuple<float, double, double, double>& args) { return basicCollision(std::get<0>(args), std::get<1>(args), std::get<2>(args), std::get<3>(args), t); }, t_global, 14, 309, 67);
                     functionPoolVector.push_back({0x02, (float)oneCommand[1], t_global, 14, 309, 67 }); // command, motorNum,t0, values for functions
                 }
-                else if (oneCommand[0] == 0x01) {
+                else if (oneCommand[0] == 0x01) { //pressure
                     std::lock_guard<std::mutex> lock(mtx); // must add lock, or the program will crash
                     //addFunctionCall([](double t, const std::tuple<float, double, double, double>& args) { return basicCollision(std::get<0>(args), std::get<1>(args), std::get<2>(args), std::get<3>(args), t); }, t_global, 14, 309, 67);
                     functionPoolVector.push_back({ 0x01, (float)oneCommand[1], (float)oneCommand[2], (float)oneCommand[3] }); // command, motorNum,high bit, low bit
+                }
+                else if (oneCommand[0] == 0x03) { //simple friction
+                    std::lock_guard<std::mutex> lock(mtx); // must add lock, or the program will crash
+                    //addFunctionCall([](double t, const std::tuple<float, double, double, double>& args) { return basicCollision(std::get<0>(args), std::get<1>(args), std::get<2>(args), std::get<3>(args), t); }, t_global, 14, 309, 67);
+                    functionPoolVector.push_back({ 0x03, (float)oneCommand[1], (float)oneCommand[2], (float)oneCommand[3] }); // command, motorNum,high bit, low bit
                 }
             }
          

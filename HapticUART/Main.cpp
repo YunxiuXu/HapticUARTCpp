@@ -16,7 +16,7 @@ void socketThread() {
     runServer();
 }
 
-float t_global = 0;
+float t_global = 0, t_global_continus = 0; //continus means not reset to 0
 int motorNum = 8;//单次控制的电机数量
 //std::mutex mtx;  // 用于保护 functionCalls 的互斥量
 
@@ -59,23 +59,38 @@ int main()
                 if (v[0] == 0x01) {
                     auto receivedCurrentValue = ((int)v[2] << 8) + (int)v[3];
                     motorBaseCurrentValue[(int)v[1]] = receivedCurrentValue; // ! Not+=, because Unity may send multiple packages, so 0x01 must write at front
-                    
+                    //motorBaseCurrentValue[(int)v[1]] = 0;
                     //if ((int)v[1] == 5) {
                     //    std::cout << receivedCurrentValue << std::endl;
                     //}
                     v[0] = 0xFF; //life over flag
                     //std::cout << motorBaseCurrentValue[(int)v[1]] << std::endl;
                 }
-                else if (v[0] == 0x02) {
+                //else if (v[0] == 0x02) {
 
-                    auto result = basicCollision(v[2], v[3], v[4], v[5], t_global);
+                //    auto result = basicCollision(v[2], v[3], v[4], v[5], t_global);
 
-                    motorCurrentValue[(int)v[1]] += 150 * result[0]; //motor No. , must float to int
+               //     motorCurrentValue[(int)v[1]] += 150 * result[0]; //motor No. , must float to int
 
-                    if (result[1] == 0) // if life over
-                        v[0] = 0xFF; //life over flag
+                //    if (result[1] == 0) // if life over
+                //        v[0] = 0xFF; //life over flag
+                //}
+                else if (v[0] == 0x03) {
+                    auto receivedCurrentValue = ((int)v[2] << 8) + (int)v[3];
+                    auto result = calculateSin(receivedCurrentValue, receivedCurrentValue, 0, t_global_continus)*5 - 150;
+                    motorBaseCurrentValue[(int)v[1]] += result; // ! Not+=, because Unity may send multiple packages, so 0x01 must write at front
+
+                    //if ((int)v[1] == 5) {
+                    //    std::cout << result << std::endl;
+                    //}
+                    v[0] = 0xFF; //life over flag
+                    //std::cout << motorBaseCurrentValue[(int)v[1]] << std::endl;
                 }
+
             }
+            //auto result = calculateSin(20, 30, 0, t_global1) - 40;
+            //std::cout << result << "ggg"<< std::endl;
+            //motorCurrentValue[5] += result;
         }
         {
             std::lock_guard<std::mutex> lock(mtx);
@@ -91,16 +106,16 @@ int main()
         }
         for (int num = 0; num < motorNum; num++) { //最终电流转换为电机控制参数
             auto result = intToHexProtocol(motorCurrentValue[num] + motorBaseCurrentValue[num]);
-            if(num == 5)
-                std::cout << motorCurrentValue[num] + motorBaseCurrentValue[num] << std::endl;
+            //if(num == 5)
+               //std::cout << motorCurrentValue[num] + motorBaseCurrentValue[num] << std::endl;
             val[num * 2] = result[0];
             val[num * 2 + 1] = result[1];
         }
 
         
         
-        unsigned char data_to_sends[] = { 0x31, 0, 0, 0, 0, 0, 0, 0,0,0, 0, val[10], val[11], 0, 0, val[14], val[15]};
-        //unsigned char data_to_sends[] = { 0x31, val[0], val[1], val[2], val[3], val[4], val[5], val[6], val[7], val[8], val[9], val[10], val[11], val[12], val[13], val[14], val[15]};
+        //unsigned char data_to_sends[] = { 0x31, 0, 0, 0, 0, 0, 0, 0,0,0, 0, 0, 0, val[12], val[13], val[14], val[15]};
+        unsigned char data_to_sends[] = { 0x31, val[0], val[1], val[2], val[3], val[4], val[5], val[6], val[7], val[8], val[9], val[10], val[11], val[12], val[13], val[14], val[15]};
         //for (int i = 0; i < sizeof(data_to_sends); i++) {
         //    if (i == 0)
         //        data_to_sends[0] = 0x31;
@@ -121,6 +136,7 @@ int main()
 
         std::this_thread::sleep_until(next_time);
         t_global += 0.001;
+        t_global_continus += 0.001;
         {
             std::lock_guard<std::mutex> lock(mtx);
             if (functionPoolVector.empty()) {
