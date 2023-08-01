@@ -58,8 +58,9 @@ int main()
                 
                 if (v[0] == 0x01) {
                     auto receivedCurrentValue = ((int)v[2] << 8) + (int)v[3];
+                    motorBaseCurrentValue[(int)v[1]] = 0;
                     motorBaseCurrentValue[(int)v[1]] = receivedCurrentValue; // ! Not+=, because Unity may send multiple packages, so 0x01 must write at front
-                    //motorBaseCurrentValue[(int)v[1]] = 0;
+                    
                     //if ((int)v[1] == 5) {
                     //    std::cout << receivedCurrentValue << std::endl;
                     //}
@@ -77,7 +78,7 @@ int main()
                 //}
                 else if (v[0] == 0x03) {
                     auto receivedCurrentValue = ((int)v[2] << 8) + (int)v[3];
-                    auto result = calculateSin(receivedCurrentValue, receivedCurrentValue, 0, t_global_continus)*5 - 150;
+                    auto result = calculateSin(receivedCurrentValue, 100, 0, t_global_continus)*1;
                     motorBaseCurrentValue[(int)v[1]] += result; // ! Not+=, because Unity may send multiple packages, so 0x01 must write at front
 
                     //if ((int)v[1] == 5) {
