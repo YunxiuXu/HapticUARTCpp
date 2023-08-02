@@ -111,9 +111,15 @@ int main()
             }
         }
         for (int num = 0; num < motorNum; num++) { //最终电流转换为电机控制参数
-            auto result = intToHexProtocol(motorCurrentValue[num] + motorBaseCurrentValue[num]);
-            //if(num == 5)
-               //std::cout << motorCurrentValue[num] + motorBaseCurrentValue[num] << std::endl;
+            auto outputCurrent = motorCurrentValue[num] + motorBaseCurrentValue[num];
+            if (motorQ[num] > MaxQ)
+                outputCurrent /= 3;
+            auto result = intToHexProtocol(outputCurrent);
+            motorQ[num] += outputCurrent * outputCurrent / 1000 - DiffuseQ; // I2RDeltaT - DeltaT, omit somevalues
+            if (motorQ[num] < 0)
+                motorQ[num] = 0;
+            if(num == 5)
+               std::cout << motorQ[num] << std::endl;
             val[num * 2] = result[0];
             val[num * 2 + 1] = result[1];
         }
