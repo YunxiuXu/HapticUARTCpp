@@ -8,6 +8,7 @@ extern int motorBaseCurrentValue[20]; //0x01's value will in there, can only cha
 extern int motorQ[20]; //save Motor's head(of course apporximately)
 extern int DiffuseQ;
 extern int MaxQ;
+extern bool isCooling[20];
 
 
 void pushValue2Current();

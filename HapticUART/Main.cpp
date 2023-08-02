@@ -67,15 +67,21 @@ int main()
                     v[0] = 0xFF; //life over flag
                     //std::cout << motorBaseCurrentValue[(int)v[1]] << std::endl;
                 }
-                //else if (v[0] == 0x02) {
-                    //auto receivedCurrentValue = ((int)v[4] << 8) + (int)v[5];
-                    //auto result = basicCollision(v[2], v[3], receivedCurrentValue, v[6], t_global);
+                else if (v[0] == 0x02) {
+                    auto receivedCurrentValue = ((int)v[4] << 8) + (int)v[5];
+                    auto result = basicCollision(v[2], v[3], 144, v[6], t_global);
 
-                   // motorCurrentValue[(int)v[1]] += 50 * result[0]; //motor No. , must float to int
-                    ////std::cout << receivedCurrentValue << std::endl;
-                    //if (result[1] == 0) // if life over
-                     //   v[0] = 0xFF; //life over flag
-               // }
+                    motorCurrentValue[(int)v[1]] += 0.5 * receivedCurrentValue * result[0]; //motor No. , must float to int
+                    if (motorCurrentValue[(int)v[1]] < 0)
+                        motorCurrentValue[(int)v[1]] = -motorCurrentValue[(int)v[1]];
+                    if (motorCurrentValue[(int)v[1]] > 512)
+                        motorCurrentValue[(int)v[1]] = 512;
+
+                    //if(motorCurrentValue[(int)v[1]] != 0)
+                        //std::cout << motorCurrentValue[(int)v[1]] << std::endl;
+                    if (result[1] == 0) // if life over
+                        v[0] = 0xFF; //life over flag
+                }
                 else if (v[0] == 0x03) {
                     auto receivedCurrentValue = ((int)v[2] << 8) + (int)v[3];
                     auto result = 0;
@@ -85,6 +91,12 @@ int main()
                         result = calculateSin(receivedCurrentValue, 40, 0, t_global_continus) * 1;
                     else 
                         result = calculateSin(receivedCurrentValue, 40, 0, t_global_continus) * 0.2;
+
+                    if (result > 50)
+                    {
+                        if (motorBaseCurrentValue[(int)v[1]] > 128)
+                            motorBaseCurrentValue[(int)v[1]] = 128;
+                    }
                     motorBaseCurrentValue[(int)v[1]] += result; // ! Not+=, because Unity may send multiple packages, so 0x01 must write at front
 
                     //if ((int)v[1] == 5) {
@@ -112,14 +124,28 @@ int main()
         }
         for (int num = 0; num < motorNum; num++) { //最终电流转换为电机控制参数
             auto outputCurrent = motorCurrentValue[num] + motorBaseCurrentValue[num];
-            if (motorQ[num] > MaxQ)
+
+            if (isCooling[num] == 0 && motorQ[num] > MaxQ) //overHeat and not cooling
+            {
+                isCooling[num] = 1;
+            }
+
+            if (isCooling[num] == 1)
+            {
                 outputCurrent /= 3;
+                if (motorQ[num] <= 0)
+                    isCooling[num] = 0;
+            }
+                
+
+
             auto result = intToHexProtocol(outputCurrent);
+
             motorQ[num] += outputCurrent * outputCurrent / 1000 - DiffuseQ; // I2RDeltaT - DeltaT, omit somevalues
             if (motorQ[num] < 0)
                 motorQ[num] = 0;
-            if(num == 5)
-               std::cout << motorQ[num] << std::endl;
+            //if(num == 5)
+               //std::cout << motorQ[num] << std::endl;
             val[num * 2] = result[0];
             val[num * 2 + 1] = result[1];
         }
