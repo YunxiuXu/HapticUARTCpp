@@ -32,12 +32,12 @@ int main()
     std::cin >> userInput;
     if (userInput == '0') {
         std::cout << "right hand" << std::endl;
-        ComNum = "\\\\.\\COM4";
+        ComNum = "\\\\.\\COM9";
         port = 1233;
     }
     else{
         std::cout << "left hand" << std::endl;
-        ComNum = "\\\\.\\COM11";
+        ComNum = "\\\\.\\COM14";
         port = 1234;
     }
 
@@ -88,11 +88,14 @@ int main()
                     auto receivedCurrentValue = ((int)v[4] << 8) + (int)v[5];
                     auto result = basicCollision(v[2], v[3], 144, v[6], t_global);
 
+                    if (motorCurrentValue[(int)v[1]] > 256)
+                        motorCurrentValue[(int)v[1]] = 256;
+
                     motorCurrentValue[(int)v[1]] += 0.5 * receivedCurrentValue * result[0]; //motor No. , must float to int
+
                     if (motorCurrentValue[(int)v[1]] < 0)
                         motorCurrentValue[(int)v[1]] = -motorCurrentValue[(int)v[1]];
-                    if (motorCurrentValue[(int)v[1]] > 512)
-                        motorCurrentValue[(int)v[1]] = 512;
+                    
 
                     //if(motorCurrentValue[(int)v[1]] != 0)
                         //std::cout << motorCurrentValue[(int)v[1]] << std::endl;
