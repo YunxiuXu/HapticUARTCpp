@@ -162,7 +162,7 @@ int main()
             if (motorQ[num] < 0)
                 motorQ[num] = 0;
             //if(num == 5)
-               std::cout << outputCurrent << std::endl;
+               //std::cout << outputCurrent << std::endl;
             val[num * 2] = result[0];
             val[num * 2 + 1] = result[1];
         }
