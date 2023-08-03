@@ -8,12 +8,13 @@
 #pragma comment (lib, "ws2_32.lib")
 
 extern float t_global;
+int port;
 
 void runServer()
 {
     
     std::string ipAddress = "127.0.0.1";
-    int port = 1233;
+
 
     // 初始化Winsock
     WSAData wsData;

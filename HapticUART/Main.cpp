@@ -7,6 +7,7 @@
 #include "GetSocket.h"
 #include "motorControl.h"
 #include "signalGenerator.h"
+#include <string>
 
 #define M_PI 3.14159265
 
@@ -23,9 +24,25 @@ int motorNum = 8;//单次控制的电机数量
 
 int main()
 {
-    double frequency = 3; // 调整这个值以改变频率
+    //double frequency = 3; // 调整这个值以改变频率
+    
+    char userInput;
+    std::string ComNum;
+    std::cout << "Please input 0 for right hand 1 for left hand:" << std::endl;
+    std::cin >> userInput;
+    if (userInput == '0') {
+        std::cout << "right hand" << std::endl;
+        ComNum = "\\\\.\\COM4";
+        port = 1233;
+    }
+    else{
+        std::cout << "left hand" << std::endl;
+        ComNum = "\\\\.\\COM11";
+        port = 1234;
+    }
 
-    SerialPort serial("COM9", 2000000); // 创建串口对象
+
+    SerialPort serial(ComNum, 2000000); // 创建串口对象
 
     if (!serial.isOpen()) {
         std::cerr << "ERROR: Unable to open serial port.\n";
@@ -145,7 +162,7 @@ int main()
             if (motorQ[num] < 0)
                 motorQ[num] = 0;
             //if(num == 5)
-               //std::cout << motorQ[num] << std::endl;
+               std::cout << outputCurrent << std::endl;
             val[num * 2] = result[0];
             val[num * 2 + 1] = result[1];
         }
