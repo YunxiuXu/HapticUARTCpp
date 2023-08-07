@@ -3,6 +3,10 @@
 unsigned char val[40] = { 0 }; 
 int motorCurrentValue[20] = { 0 };
 int motorBaseCurrentValue[20] = { 0 };
+
+int last_motorBaseCurrentValue[20] = { 0 };
+float tilt_motorBaseCurrentValue[20] = { 0 };
+
 int motorQ[20] = { 0 };
 int DiffuseQ = 100;
 int MaxQ = 300000;
@@ -25,4 +29,10 @@ void clearMotorCurrentValue() {
 
 void clearMotorBaseCurrentValue() {
     std::memset(motorBaseCurrentValue, 0, sizeof(motorBaseCurrentValue));
+    std::memset(motorCurrentValue, 0, sizeof(motorCurrentValue));
+    std::memset(last_motorBaseCurrentValue, 0, sizeof(last_motorBaseCurrentValue));
+    std::memset(tilt_motorBaseCurrentValue, 0, sizeof(tilt_motorBaseCurrentValue));
+
+    
+
 }

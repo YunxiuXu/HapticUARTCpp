@@ -9,6 +9,7 @@
 #include "signalGenerator.h"
 #include <string>
 
+
 #define M_PI 3.14159265
 
 int aaa = 0;
@@ -32,12 +33,12 @@ int main()
     std::cin >> userInput;
     if (userInput == '0') {
         std::cout << "right hand" << std::endl;
-        ComNum = "\\\\.\\COM9";
+        ComNum = "\\\\.\\COM6";
         port = 1233;
     }
     else{
         std::cout << "left hand" << std::endl;
-        ComNum = "\\\\.\\COM14";
+        ComNum = "\\\\.\\COM5";
         port = 1234;
     }
 
@@ -75,9 +76,12 @@ int main()
                 
                 if (v[0] == 0x01) {
                     auto receivedCurrentValue = ((int)v[2] << 8) + (int)v[3];
-                    motorBaseCurrentValue[(int)v[1]] = 0;
+                    //motorBaseCurrentValue[(int)v[1]] = 0;
+                    last_motorBaseCurrentValue[(int)v[1]] = motorBaseCurrentValue[(int)v[1]];
                     motorBaseCurrentValue[(int)v[1]] = receivedCurrentValue; // ! Not+=, because Unity may send multiple packages, so 0x01 must write at front
                     
+                    tilt_motorBaseCurrentValue[(int)v[1]] = ((float)motorBaseCurrentValue[(int)v[1]] - (float)last_motorBaseCurrentValue[(int)v[1]]) / (1000 * 0.02);;
+
                     //if ((int)v[1] == 5) {
                     //    std::cout << receivedCurrentValue << std::endl;
                     //}
@@ -143,7 +147,9 @@ int main()
             }
         }
         for (int num = 0; num < motorNum; num++) { //最终电流转换为电机控制参数
-            auto outputCurrent = motorCurrentValue[num] + motorBaseCurrentValue[num];
+            last_motorBaseCurrentValue[num] += tilt_motorBaseCurrentValue[num];
+
+            auto outputCurrent = motorCurrentValue[num] + last_motorBaseCurrentValue[num];
 
             if (isCooling[num] == 0 && motorQ[num] > MaxQ) //overHeat and not cooling
             {
@@ -164,8 +170,13 @@ int main()
             motorQ[num] += outputCurrent * outputCurrent / 1000 - DiffuseQ; // I2RDeltaT - DeltaT, omit somevalues
             if (motorQ[num] < 0)
                 motorQ[num] = 0;
-            //if(num == 5)
-               //std::cout << outputCurrent << std::endl;
+            //if (num == 5)
+            //{
+            //    if (outputCurrent > 0)
+			//		std::cout << outputCurrent << ",";
+				
+            //}
+               
             val[num * 2] = result[0];
             val[num * 2 + 1] = result[1];
         }
