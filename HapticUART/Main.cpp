@@ -118,8 +118,8 @@ int main()
 
                     if (result > 50)
                     {
-                        if (motorBaseCurrentValue[(int)v[1]] > 128)
-                            motorBaseCurrentValue[(int)v[1]] = 128;
+                        if (motorBaseCurrentValue[(int)v[1]] > 256)
+                            motorBaseCurrentValue[(int)v[1]] = 256;
                     }
                     motorBaseCurrentValue[(int)v[1]] += result; // ! Not+=, because Unity may send multiple packages, so 0x01 must write at front
 
