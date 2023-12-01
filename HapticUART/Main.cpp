@@ -33,7 +33,7 @@ int main()
     std::cin >> userInput;
     if (userInput == '0') {
         std::cout << "right hand" << std::endl;
-        ComNum = "\\\\.\\COM6";
+        ComNum = "\\\\.\\COM13";
         port = 1233;
     }
     else{
@@ -57,8 +57,10 @@ int main()
     std::thread printThread(socketThread);
 
 
-    // Initialize the Kalman filter
-
+    const double PI = 3.14159265358979323846;
+    double amplitude = 1.0; // 可以调节的幅值
+    
+    // final value for output is "motorCurrentValue"(0-2048), motorBaseCurrentValue (may) is only for force,0x01, 
 
     while (true) {
 
@@ -69,7 +71,10 @@ int main()
         double elapsed_time = std::chrono::duration<double>(next_time - start_time).count();
 
         clearMotorCurrentValue();
-            
+        
+
+        
+
         {
             std::lock_guard<std::mutex> lock(mtx);
             for (std::vector<float>& v : functionPoolVector) {
@@ -88,7 +93,7 @@ int main()
                     v[0] = 0xFF; //life over flag
                     //std::cout << motorBaseCurrentValue[(int)v[1]] << std::endl;
                 }
-                else if (v[0] == 0x02) {
+                else if (v[0] == 0x02) { //Collision
                     auto receivedCurrentValue = ((int)v[4] << 8) + (int)v[5];
                     auto result = basicCollision(v[2], v[3], 144, v[6], t_global);
 
@@ -106,7 +111,7 @@ int main()
                     if (result[1] == 0) // if life over
                         v[0] = 0xFF; //life over flag
                 }
-                else if (v[0] == 0x03) {
+                else if (v[0] == 0x3) { //friction
                     auto receivedCurrentValue = ((int)v[2] << 8) + (int)v[3];
                     auto result = 0;
                     if(receivedCurrentValue < 30)
@@ -123,9 +128,7 @@ int main()
                     }
                     motorBaseCurrentValue[(int)v[1]] += result; // ! Not+=, because Unity may send multiple packages, so 0x01 must write at front
 
-                    //if ((int)v[1] == 5) {
-                        //std::cout << result << std::endl;
-                    //}
+
                     v[0] = 0xFF; //life over flag
                 }
 
@@ -148,6 +151,19 @@ int main()
         }
         for (int num = 0; num < motorNum; num++) { //最终电流转换为电机控制参数
             last_motorBaseCurrentValue[num] += tilt_motorBaseCurrentValue[num];
+            
+            if (num == 2) {
+                // 计算正弦波的值
+                double frequency = 90; // 可以调节的频率，单位是Hz
+                double sin_value = amplitude * std::sin(2 * PI * frequency * elapsed_time) + 1;
+                sin_value = sin_value * 160 + 40;
+                // 使用正弦波的值（例如，输出）
+                //std::cout << sin_value << std::endl;
+
+                motorCurrentValue[2] = sin_value;
+               motorCurrentValue[2] = 0;
+            }
+                
 
             auto outputCurrent = motorCurrentValue[num] + last_motorBaseCurrentValue[num];
 
@@ -162,8 +178,11 @@ int main()
                 if (motorQ[num] <= 0)
                     isCooling[num] = 0;
             }
-                
-
+            
+            if (num == 2) {
+                std::cout << outputCurrent << std::endl;
+            }
+            
 
             auto result = intToHexProtocol(outputCurrent);
 
@@ -185,6 +204,7 @@ int main()
         
         //unsigned char data_to_sends[] = { 0x31, 0, 0, 0, 0, 0, 0, 0,0,0, 0, val[10], val[11], 0, 0, val[14], val[15]};
         unsigned char data_to_sends[] = { 0x31, val[0], val[1], val[2], val[3], val[4], val[5], val[6], val[7], val[8], val[9], val[10], val[11], val[12], val[13], val[14], val[15]};
+
         //for (int i = 0; i < sizeof(data_to_sends); i++) {
         //    if (i == 0)
         //        data_to_sends[0] = 0x31;
