@@ -1,4 +1,4 @@
-#include "serial.h"
+﻿#include "serial.h"
 
 SerialPort::SerialPort(const std::string& portName, int baudRate)
 {
@@ -13,6 +13,11 @@ SerialPort::SerialPort(const std::string& portName, int baudRate)
         }
     }
     else {
+        // 增加缓冲区大小
+        if (!SetupComm(hSerial, 16384, 16384)) { // 4096
+            std::cerr << "ERROR: Unable to setup serial port buffer size.\n";
+        }
+
         DCB dcbSerialParams = { 0 };
         dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
 
