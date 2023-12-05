@@ -33,7 +33,7 @@ int main()
     std::cin >> userInput;
     if (userInput == '0') {
         std::cout << "right hand" << std::endl;
-        ComNum = "\\\\.\\COM13";
+        ComNum = "\\\\.\\COM3";
         port = 1233;
     }
     else{
@@ -59,7 +59,8 @@ int main()
 
     const double PI = 3.14159265358979323846;
     double amplitude = 1.0; // 可以调节的幅值
-    
+
+    int lastflag = 0;
     // final value for output is "motorCurrentValue"(0-2048), motorBaseCurrentValue (may) is only for force,0x01, 
 
     while (true) {
@@ -149,19 +150,31 @@ int main()
                 }
             }
         }
+        
         for (int num = 0; num < motorNum; num++) { //最终电流转换为电机控制参数
             last_motorBaseCurrentValue[num] += tilt_motorBaseCurrentValue[num];
             
-            if (num == 2) {
+            if (num == 4) {
                 // 计算正弦波的值
-                double frequency = 90; // 可以调节的频率，单位是Hz
+                double frequency = 10; // 可以调节的频率，单位是Hz
                 double sin_value = amplitude * std::sin(2 * PI * frequency * elapsed_time) + 1;
                 sin_value = sin_value * 160 + 40;
                 // 使用正弦波的值（例如，输出）
                 //std::cout << sin_value << std::endl;
 
-                motorCurrentValue[2] = sin_value;
-               motorCurrentValue[2] = 0;
+                motorCurrentValue[4] = sin_value;
+               
+
+               if (lastflag == 0) {
+                   motorCurrentValue[4] = 300;
+                   lastflag = 1;
+               }
+               else {
+                   motorCurrentValue[4] = 0;
+                   lastflag = 0;
+               }
+               motorCurrentValue[4] = 0;
+                
             }
                 
 
@@ -179,9 +192,9 @@ int main()
                     isCooling[num] = 0;
             }
             
-            if (num == 2) {
-                std::cout << outputCurrent << std::endl;
-            }
+            //if (num == 2) {
+                //std::cout << outputCurrent << std::endl;
+            //}
             
 
             auto result = intToHexProtocol(outputCurrent);
