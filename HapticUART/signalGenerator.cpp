@@ -18,6 +18,22 @@ double calculateSin(double amplitude, double frequency, double phaseShift, doubl
     return amplitude * std::sin(radians);
 }
 
+double calculateSquareWave(double amplitude, double frequency, double t) {
+    double period = 1.0 / frequency;
+    double halfPeriod = period / 2.0;
+
+    // 计算当前时间在其周期内的位置
+    double timeInPeriod = fmod(t, period);
+
+    // 如果时间在半周期内，则输出振幅值，否则输出负振幅或 0
+    if (timeInPeriod < halfPeriod) {
+        return amplitude;
+    }
+    else {
+        return 0; // 或者 return 0，取决于你希望的方波形状
+    }
+}
+
 std::vector<float> basicCollision(float t0, float L, float B, float freq, float t) {
     float lifeTime = 0.2f;
     t = t - t0;

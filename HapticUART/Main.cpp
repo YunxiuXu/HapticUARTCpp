@@ -11,7 +11,6 @@
 
 #define M_PI 3.14159265
 
-int aaa = 0;
 // 打印函数
 void socketThread() {
     runServer();
@@ -21,6 +20,8 @@ float t_global = 0, t_global_continus = 0; //continus means not reset to 0
 int motorNum = 8;//单次控制的电机数量
 //std::mutex mtx;  // 用于保护 functionCalls 的互斥量
 
+float linearFricSquare[20], linearAmplitute[20] = {0}; //save value for square waveform realtime
+float rotationalFricSquare[20], rotationalAmplitute[20] = { 0 };
 
 int main()
 {
@@ -32,7 +33,7 @@ int main()
     std::cin >> userInput;
     if (userInput == '0') {
         std::cout << "right hand" << std::endl;
-        ComNum = "\\\\.\\COM9";
+        ComNum = "\\\\.\\COM13";
         port = 1233;
     }
     else{
@@ -58,7 +59,6 @@ int main()
 
     // Initialize the Kalman filter
 
-
     while (true) {
 
         /////////////////////////Code for socket
@@ -67,10 +67,21 @@ int main()
         next_time += std::chrono::milliseconds(1);
         double elapsed_time = std::chrono::duration<double>(next_time - start_time).count();
 
+        float linearFrictionSquareValue = calculateSquareWave(1, 90, t_global_continus);
+        float rotationalFrictionSquareValue = calculateSquareWave(1, 150, t_global_continus);
+        for (int i = 0; i < 8; i++) {
+            linearFricSquare[i] = linearFrictionSquareValue; //load 
+            rotationalFricSquare[i] = rotationalFrictionSquareValue;
+        }
+
         clearMotorCurrentValue();
             
         {
             std::lock_guard<std::mutex> lock(mtx);
+            
+            
+            
+            //std::cout << squareWaveNum << std::endl;
             for (std::vector<float>& v : functionPoolVector) {
                 
                 if (v[0] == 0x01) {
@@ -78,11 +89,8 @@ int main()
                     motorBaseCurrentValue[(int)v[1]] = 0;
                     motorBaseCurrentValue[(int)v[1]] = receivedCurrentValue; // ! Not+=, because Unity may send multiple packages, so 0x01 must write at front
                     
-                    //if ((int)v[1] == 5) {
-                    //    std::cout << receivedCurrentValue << std::endl;
-                    //}
                     v[0] = 0xFF; //life over flag
-                    //std::cout << motorBaseCurrentValue[(int)v[1]] << std::endl;
+
                 }
                 else if (v[0] == 0x02) {
                     auto receivedCurrentValue = ((int)v[4] << 8) + (int)v[5];
@@ -97,35 +105,45 @@ int main()
                         motorCurrentValue[(int)v[1]] = -motorCurrentValue[(int)v[1]];
                     
 
-                    //if(motorCurrentValue[(int)v[1]] != 0)
-                        //std::cout << motorCurrentValue[(int)v[1]] << std::endl;
                     if (result[1] == 0) // if life over
                         v[0] = 0xFF; //life over flag
                 }
-                else if (v[0] == 0x03) {
+                else if (v[0] == 0x03) { //for linear friction
                     auto receivedCurrentValue = ((int)v[2] << 8) + (int)v[3];
                     auto result = 0;
-                    if(receivedCurrentValue < 30)
-                        result = calculateSin(receivedCurrentValue, 40, 0, t_global_continus)*7;
-                    else if (receivedCurrentValue < 60)
-                        result = calculateSin(receivedCurrentValue, 40, 0, t_global_continus) * 1;
-                    else 
-                        result = calculateSin(receivedCurrentValue, 40, 0, t_global_continus) * 0.2;
+                    result = receivedCurrentValue * 10;
 
-                    if (result > 50)
-                    {
-                        if (motorBaseCurrentValue[(int)v[1]] > 128)
-                            motorBaseCurrentValue[(int)v[1]] = 128;
-                    }
-                    motorBaseCurrentValue[(int)v[1]] += result; // ! Not+=, because Unity may send multiple packages, so 0x01 must write at front
+                    //result = calculateSin(receivedCurrentValue, 40, 0, t_global_continus) * 0.2;
+                    //if (result > 50)
+                    //{
+                    //    if (motorBaseCurrentValue[(int)v[1]] > 128)
+                    //        motorBaseCurrentValue[(int)v[1]] = 128;
+                    //}
+                    //motorBaseCurrentValue[(int)v[1]] += result; // ! Not+=, because Unity may send multiple packages, so 0x01 must write at front
 
                     //if ((int)v[1] == 5) {
                         //std::cout << result << std::endl;
                     //}
+                    linearAmplitute[(int)v[1]] = result;
+                    //motorBaseCurrentValue[0] *= result;
+                    v[0] = 0xFF; //life over flag
+                }
+                else if (v[0] == 0x04) { //for linear friction
+                    auto receivedCurrentValue = ((int)v[2] << 8) + (int)v[3];
+                    auto result = 0;
+                    result = receivedCurrentValue * 10;
+                    rotationalAmplitute[(int)v[1]] = result;
                     v[0] = 0xFF; //life over flag
                 }
 
+
             }
+
+            for (int i = 0; i < 8; i++) {
+                motorCurrentValue[i] += linearFricSquare[i] * 2 * linearAmplitute[i];
+                motorCurrentValue[i] += rotationalFricSquare[i] * 2 * rotationalAmplitute[i];
+            }
+
             //auto result = calculateSin(20, 30, 0, t_global1) - 40;
             //std::cout << result << "ggg"<< std::endl;
             //motorCurrentValue[5] += result;
@@ -164,7 +182,7 @@ int main()
             motorQ[num] += outputCurrent * outputCurrent / 1000 - DiffuseQ; // I2RDeltaT - DeltaT, omit somevalues
             if (motorQ[num] < 0)
                 motorQ[num] = 0;
-            //if(num == 5)
+            //if(num == 0)
                //std::cout << outputCurrent << std::endl;
             val[num * 2] = result[0];
             val[num * 2 + 1] = result[1];
@@ -173,7 +191,7 @@ int main()
         
         
         //unsigned char data_to_sends[] = { 0x31, 0, 0, 0, 0, 0, 0, 0,0,0, 0, val[10], val[11], 0, 0, val[14], val[15]};
-        unsigned char data_to_sends[] = { 0x31, val[0], val[1], val[2], val[3], val[4], val[5], val[6], val[7], val[8], val[9], val[10], val[11], val[12], val[13], val[14], val[15]};
+        unsigned char data_to_sends[] = { 0x31, val[0], val[1], val[2], val[3], val[4], val[5], val[6], val[7], val[8], val[9], val[10], val[11], val[12], val[13], val[14], val[15], 0, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0, 0 , 0 , 0 , 0 , 0, 0 , 0 , 0 , 0 , 0 , 0, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0  , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0, 0, 0 , 0, 0 , 0 , 0 , 0 , 0 , 0, 0 , 0 , 0 , 0  , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0  , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0  , 0 , 0  , 0 , 0 , 0 , 0 , 0 , 0, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 };
         //for (int i = 0; i < sizeof(data_to_sends); i++) {
         //    if (i == 0)
         //        data_to_sends[0] = 0x31;
@@ -195,6 +213,9 @@ int main()
         std::this_thread::sleep_until(next_time);
         t_global += 0.001;
         t_global_continus += 0.001;
+        if(t_global_continus > 9999)
+            t_global_continus = 0;
+
         {
             std::lock_guard<std::mutex> lock(mtx);
             if (functionPoolVector.empty()) {
