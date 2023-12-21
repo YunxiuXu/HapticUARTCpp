@@ -3,6 +3,7 @@
 unsigned char val[40] = { 0 }; 
 int motorCurrentValue[20] = { 0 };
 int motorBaseCurrentValue[20] = { 0 };
+float linearAmplitute[20] = { 0 }, rotationalAmplitute[20] = { 0 }; //save value for square waveform realtime
 int motorQ[20] = { 0 };
 int DiffuseQ = 1000;
 int MaxQ = 12600000;
@@ -21,8 +22,11 @@ void pushValue2Current() {
 
 void clearMotorCurrentValue() {
     std::memset(motorCurrentValue, 0, sizeof(motorCurrentValue));
+    
 }
 
 void clearMotorBaseCurrentValue() {
     std::memset(motorBaseCurrentValue, 0, sizeof(motorBaseCurrentValue));
+    std::memset(rotationalAmplitute, 0, sizeof(rotationalAmplitute));
+    std::memset(linearAmplitute, 0, sizeof(linearAmplitute));
 }

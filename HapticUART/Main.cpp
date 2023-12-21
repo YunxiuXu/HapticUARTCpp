@@ -11,6 +11,7 @@
 
 #define M_PI 3.14159265
 
+//if you want to change communication protocol, first, change main's if 0x0X, they goto GetSocket.cpp, change, and don't froget change Unity's firceHapticSender
 // 打印函数
 void socketThread() {
     runServer();
@@ -20,8 +21,8 @@ float t_global = 0, t_global_continus = 0; //continus means not reset to 0
 int motorNum = 8;//单次控制的电机数量
 //std::mutex mtx;  // 用于保护 functionCalls 的互斥量
 
-float linearFricSquare[20], linearAmplitute[20] = {0}; //save value for square waveform realtime
-float rotationalFricSquare[20], rotationalAmplitute[20] = { 0 };
+float linearFricSquare[20]; //save value for square waveform realtime
+float rotationalFricSquare[20];
 
 int main()
 {
@@ -55,7 +56,7 @@ int main()
 
     // 创建新线程并运行printHelloWorld函数
     std::thread printThread(socketThread);
-
+    float linearFrictionFrequency = 100, rotationalFrictionFrequency = 250;
 
     // Initialize the Kalman filter
 
@@ -67,8 +68,8 @@ int main()
         next_time += std::chrono::milliseconds(1);
         double elapsed_time = std::chrono::duration<double>(next_time - start_time).count();
 
-        float linearFrictionSquareValue = calculateSquareWave(1, 100, t_global_continus);
-        float rotationalFrictionSquareValue = calculateSquareWave(1, 250, t_global_continus);
+        float linearFrictionSquareValue = calculateSquareWave(1, linearFrictionFrequency, t_global_continus);
+        float rotationalFrictionSquareValue = calculateSquareWave(1, rotationalFrictionFrequency, t_global_continus);
         for (int i = 0; i < 8; i++) {
             linearFricSquare[i] = linearFrictionSquareValue; //load 
             rotationalFricSquare[i] = rotationalFrictionSquareValue;
@@ -113,6 +114,10 @@ int main()
                     auto result = 0;
                     result = receivedCurrentValue * 10;
 
+                    auto receivedVelocity = ((int)v[4] << 8) + (int)v[5];
+                    linearFrictionFrequency = receivedVelocity;
+                    if(linearFrictionFrequency > 500)
+                        linearFrictionFrequency = 500;
                     //result = calculateSin(receivedCurrentValue, 40, 0, t_global_continus) * 0.2;
                     //if (result > 50)
                     //{
@@ -128,20 +133,16 @@ int main()
                     //motorBaseCurrentValue[0] *= result;
                     v[0] = 0xFF; //life over flag
                 }
-                else if (v[0] == 0x04) { //for linear friction
+                else if (v[0] == 0x04) { //for angular friction
                     auto receivedCurrentValue = ((int)v[2] << 8) + (int)v[3];
                     auto result = 0;
                     result = receivedCurrentValue * 10;
+                    auto receivedVelocity = ((int)v[4] << 8) + (int)v[5];
+                    //std::cout << receivedVelocity << std::endl;
+                    //rotationalFrictionFrequency = receivedVelocity * 10; //look like 0 to 50, so *10 for 500Hz 效果不好，不折腾了
+
                     rotationalAmplitute[(int)v[1]] = result;
                     v[0] = 0xFF; //life over flag
-                }
-                if (v[0] == 0x05) {
-                    auto receivedCurrentValue = ((int)v[2] << 8) + (int)v[3];
-                    if (motorBaseCurrentValue[(int)v[2]] > 250)
-                        motorBaseCurrentValue[(int)v[2]] = 250;
-                    motorBaseCurrentValue[(int)v[1]] += receivedCurrentValue;
-                    v[0] = 0xFF; //life over flag
-
                 }
 
 

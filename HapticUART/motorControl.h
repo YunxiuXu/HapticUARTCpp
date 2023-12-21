@@ -9,6 +9,7 @@ extern int motorQ[20]; //save Motor's head(of course apporximately)
 extern int DiffuseQ;
 extern int MaxQ;
 extern bool isCooling[20];
+extern float linearAmplitute[20], rotationalAmplitute[20]; //save value for square waveform realtime
 
 
 void pushValue2Current();
