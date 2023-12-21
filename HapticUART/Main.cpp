@@ -94,17 +94,18 @@ int main()
 
                 }
                 else if (v[0] == 0x02) {
+                    
                     auto receivedCurrentValue = ((int)v[4] << 8) + (int)v[5];
                     auto result = basicCollision(v[2], v[3], 144, v[6], t_global);
 
-                    if (motorCurrentValue[(int)v[1]] > 256)
-                        motorCurrentValue[(int)v[1]] = 256;
+                    //if (motorCurrentValue[(int)v[1]] > 256)
+                    //    motorCurrentValue[(int)v[1]] = 256;
 
-                    motorCurrentValue[(int)v[1]] += 0.5 * receivedCurrentValue * result[0]; //motor No. , must float to int
+                    motorCurrentValue[(int)v[1]] -= 10 * receivedCurrentValue * result[0]; //motor No. , must float to int
 
-                    if (motorCurrentValue[(int)v[1]] < 0)
-                        motorCurrentValue[(int)v[1]] = -motorCurrentValue[(int)v[1]];
-                    
+                   // if (motorCurrentValue[(int)v[1]] < 0)
+                   //     motorCurrentValue[(int)v[1]] = 0;
+                    //std::cout << result[0] << std::endl;
 
                     if (result[1] == 0) // if life over
                         v[0] = 0xFF; //life over flag
@@ -112,10 +113,10 @@ int main()
                 else if (v[0] == 0x03) { //for linear friction
                     auto receivedCurrentValue = ((int)v[2] << 8) + (int)v[3];
                     auto result = 0;
-                    result = receivedCurrentValue * 10;
+                    result = receivedCurrentValue * 3;
 
                     auto receivedVelocity = ((int)v[4] << 8) + (int)v[5];
-                    linearFrictionFrequency = receivedVelocity;
+                    linearFrictionFrequency = 20 + receivedVelocity * 1;
                     if(linearFrictionFrequency > 500)
                         linearFrictionFrequency = 500;
                     //result = calculateSin(receivedCurrentValue, 40, 0, t_global_continus) * 0.2;
@@ -136,7 +137,7 @@ int main()
                 else if (v[0] == 0x04) { //for angular friction
                     auto receivedCurrentValue = ((int)v[2] << 8) + (int)v[3];
                     auto result = 0;
-                    result = receivedCurrentValue * 10;
+                    result = receivedCurrentValue * 3;
                     auto receivedVelocity = ((int)v[4] << 8) + (int)v[5];
                     //std::cout << receivedVelocity << std::endl;
                     //rotationalFrictionFrequency = receivedVelocity * 10; //look like 0 to 50, so *10 for 500Hz 效果不好，不折腾了
