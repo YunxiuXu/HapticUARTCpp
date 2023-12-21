@@ -4,8 +4,8 @@ unsigned char val[40] = { 0 };
 int motorCurrentValue[20] = { 0 };
 int motorBaseCurrentValue[20] = { 0 };
 int motorQ[20] = { 0 };
-int DiffuseQ = 100;
-int MaxQ = 300000;
+int DiffuseQ = 1000;
+int MaxQ = 12600000;
 bool isCooling[20] = { 0 };
 
 int uchar_to_int(unsigned char high, unsigned char low)

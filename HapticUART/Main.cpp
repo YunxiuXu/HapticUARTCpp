@@ -67,8 +67,8 @@ int main()
         next_time += std::chrono::milliseconds(1);
         double elapsed_time = std::chrono::duration<double>(next_time - start_time).count();
 
-        float linearFrictionSquareValue = calculateSquareWave(1, 90, t_global_continus);
-        float rotationalFrictionSquareValue = calculateSquareWave(1, 150, t_global_continus);
+        float linearFrictionSquareValue = calculateSquareWave(1, 100, t_global_continus);
+        float rotationalFrictionSquareValue = calculateSquareWave(1, 250, t_global_continus);
         for (int i = 0; i < 8; i++) {
             linearFricSquare[i] = linearFrictionSquareValue; //load 
             rotationalFricSquare[i] = rotationalFrictionSquareValue;
@@ -88,7 +88,7 @@ int main()
                     auto receivedCurrentValue = ((int)v[2] << 8) + (int)v[3];
                     motorBaseCurrentValue[(int)v[1]] = 0;
                     motorBaseCurrentValue[(int)v[1]] = receivedCurrentValue; // ! Not+=, because Unity may send multiple packages, so 0x01 must write at front
-                    
+                   
                     v[0] = 0xFF; //life over flag
 
                 }
@@ -135,6 +135,14 @@ int main()
                     rotationalAmplitute[(int)v[1]] = result;
                     v[0] = 0xFF; //life over flag
                 }
+                if (v[0] == 0x05) {
+                    auto receivedCurrentValue = ((int)v[2] << 8) + (int)v[3];
+                    if (motorBaseCurrentValue[(int)v[2]] > 250)
+                        motorBaseCurrentValue[(int)v[2]] = 250;
+                    motorBaseCurrentValue[(int)v[1]] += receivedCurrentValue;
+                    v[0] = 0xFF; //life over flag
+
+                }
 
 
             }
@@ -142,6 +150,8 @@ int main()
             for (int i = 0; i < 8; i++) {
                 motorCurrentValue[i] += linearFricSquare[i] * 2 * linearAmplitute[i];
                 motorCurrentValue[i] += rotationalFricSquare[i] * 2 * rotationalAmplitute[i];
+
+                
             }
 
             //auto result = calculateSin(20, 30, 0, t_global1) - 40;
@@ -161,10 +171,19 @@ int main()
             }
         }
         for (int num = 0; num < motorNum; num++) { //最终电流转换为电机控制参数
-            auto outputCurrent = motorCurrentValue[num] + motorBaseCurrentValue[num];
+            int outputCurrent;
+            if (motorBaseCurrentValue[num] > 250)
+                motorBaseCurrentValue[num] = 250;
+                outputCurrent = motorCurrentValue[num] + motorBaseCurrentValue[num];
+
+            if (motorBaseCurrentValue[num] > 300) //according to 612 motor max around 300
+                motorBaseCurrentValue[num] = 300;
+            //if (num == 0)
+            //   std::cout << outputCurrent << std::endl;
 
             if (isCooling[num] == 0 && motorQ[num] > MaxQ) //overHeat and not cooling
             {
+                std::cout << "overheat" << std::endl;
                 isCooling[num] = 1;
             }
 
