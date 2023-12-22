@@ -101,7 +101,7 @@ int main()
                     //if (motorCurrentValue[(int)v[1]] > 256)
                     //    motorCurrentValue[(int)v[1]] = 256;
 
-                    motorCurrentValue[(int)v[1]] -= 10 * receivedCurrentValue * result[0]; //motor No. , must float to int
+                    motorCurrentValue[(int)v[1]] += 12 * receivedCurrentValue * result[0]; //motor No. , must float to int
 
                    // if (motorCurrentValue[(int)v[1]] < 0)
                    //     motorCurrentValue[(int)v[1]] = 0;
@@ -116,7 +116,7 @@ int main()
                     result = receivedCurrentValue * 3;
 
                     auto receivedVelocity = ((int)v[4] << 8) + (int)v[5];
-                    linearFrictionFrequency = 20 + receivedVelocity * 1;
+                    linearFrictionFrequency = 20 + receivedVelocity * 0.5;
                     if(linearFrictionFrequency > 500)
                         linearFrictionFrequency = 500;
                     //result = calculateSin(receivedCurrentValue, 40, 0, t_global_continus) * 0.2;
@@ -174,12 +174,13 @@ int main()
         }
         for (int num = 0; num < motorNum; num++) { //最终电流转换为电机控制参数
             int outputCurrent;
-            if (motorBaseCurrentValue[num] > 250)
-                motorBaseCurrentValue[num] = 250;
-                outputCurrent = motorCurrentValue[num] + motorBaseCurrentValue[num];
+            if (motorBaseCurrentValue[num] + motorCurrentValue[num] > 300)
+                if (motorBaseCurrentValue[num] > 150)
+                    motorBaseCurrentValue[num] = 150;
+            outputCurrent = motorCurrentValue[num] + motorBaseCurrentValue[num];
 
-            if (motorBaseCurrentValue[num] > 300) //according to 612 motor max around 300
-                motorBaseCurrentValue[num] = 300;
+            if (outputCurrent > 300) //according to 612 motor max around 300
+                outputCurrent = 300;
             //if (num == 0)
             //   std::cout << outputCurrent << std::endl;
 
