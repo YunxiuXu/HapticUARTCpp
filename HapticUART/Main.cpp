@@ -178,11 +178,12 @@ int main()
                 if (motorBaseCurrentValue[num] > 150)
                     motorBaseCurrentValue[num] = 150;
             outputCurrent = motorCurrentValue[num] + motorBaseCurrentValue[num];
+            
 
             if (outputCurrent > 300) //according to 612 motor max around 300
                 outputCurrent = 300;
-            //if (num == 0)
-            //   std::cout << outputCurrent << std::endl;
+            if (num == 1)
+                outputCurrent *= 1.5;
 
             if (isCooling[num] == 0 && motorQ[num] > MaxQ) //overHeat and not cooling
             {
