@@ -34,7 +34,7 @@ int main()
     std::cin >> userInput;
     if (userInput == '0') {
         std::cout << "right hand" << std::endl;
-        ComNum = "\\\\.\\COM13";
+        ComNum = "\\\\.\\COM5";
         port = 1233;
     }
     else{
@@ -56,7 +56,7 @@ int main()
 
     // 创建新线程并运行printHelloWorld函数
     std::thread printThread(socketThread);
-    float linearFrictionFrequency = 100, rotationalFrictionFrequency = 250;
+    float linearFrictionFrequency = 80, rotationalFrictionFrequency = 150;
 
     // Initialize the Kalman filter
 
@@ -96,16 +96,16 @@ int main()
                 else if (v[0] == 0x02) {
                     
                     auto receivedCurrentValue = ((int)v[4] << 8) + (int)v[5];
-                    auto result = basicCollision(v[2], v[3], 144, v[6], t_global);
-
+                    auto result = basicCollision(v[2], receivedCurrentValue, 280, 80, t_global); //  basicCollision(float t0, float L, float B, float freq, float t)
+                    //  functionPoolVector.push_back({0x02, (float)oneCommand[1], t_global, 14, (float)oneCommand[2], (float)oneCommand[3], 67 })
                     //if (motorCurrentValue[(int)v[1]] > 256)
                     //    motorCurrentValue[(int)v[1]] = 256;
-
-                    motorCurrentValue[(int)v[1]] += 12 * receivedCurrentValue * result[0]; //motor No. , must float to int
+                    //std::cout << receivedCurrentValue << std::endl;
+                    motorCurrentValue[(int)v[1]] += 1 * receivedCurrentValue * result[0]; //motor No. , must float to int
 
                    // if (motorCurrentValue[(int)v[1]] < 0)
                    //     motorCurrentValue[(int)v[1]] = 0;
-                    //std::cout << result[0] << std::endl;
+                   
 
                     if (result[1] == 0) // if life over
                         v[0] = 0xFF; //life over flag
@@ -172,27 +172,31 @@ int main()
                 }
             }
         }
+        const float powerScale = 1.0; // for higher power
         for (int num = 0; num < motorNum; num++) { //最终电流转换为电机控制参数
             int outputCurrent;
-            if (motorBaseCurrentValue[num] + motorCurrentValue[num] > 300)
-                if (motorBaseCurrentValue[num] > 150)
-                    motorBaseCurrentValue[num] = 150;
-            outputCurrent = motorCurrentValue[num] + motorBaseCurrentValue[num];
+            if (motorCurrentValue[num] > 250)
+                if (motorBaseCurrentValue[num] > 80)
+                    motorBaseCurrentValue[num] = 80;
+            outputCurrent = motorCurrentValue[num] * powerScale + motorBaseCurrentValue[num] * powerScale;
             
 
-            if (outputCurrent > 300) //according to 612 motor max around 300
-                outputCurrent = 300;
+            if (outputCurrent > 300 * powerScale) //according to 612 motor max around 300
+                outputCurrent = 300 * powerScale;
+            else if (outputCurrent < -300 * powerScale)
+                outputCurrent = -300 * powerScale;
             if (num == 1)
-                outputCurrent *= 1.5;
+                outputCurrent *= -1.2;
 
             if (isCooling[num] == 0 && motorQ[num] > MaxQ) //overHeat and not cooling
             {
-                std::cout << "overheat" << std::endl;
+                
                 isCooling[num] = 1;
             }
 
             if (isCooling[num] == 1)
             {
+                std::cout << "overheat:" << motorQ[num] << std::endl;
                 outputCurrent /= 3;
                 if (motorQ[num] <= 0)
                     isCooling[num] = 0;
@@ -205,8 +209,8 @@ int main()
             motorQ[num] += outputCurrent * outputCurrent / 1000 - DiffuseQ; // I2RDeltaT - DeltaT, omit somevalues
             if (motorQ[num] < 0)
                 motorQ[num] = 0;
-            //if(num == 0)
-               //std::cout << outputCurrent << std::endl;
+            //if(num == 2)
+             //  std::cout << outputCurrent << std::endl;
             val[num * 2] = result[0];
             val[num * 2 + 1] = result[1];
         }

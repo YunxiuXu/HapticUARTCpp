@@ -35,9 +35,11 @@ double calculateSquareWave(double amplitude, double frequency, double t) {
 }
 
 std::vector<float> basicCollision(float t0, float L, float B, float freq, float t) {
-    float lifeTime = 0.2f;
+    float lifeTime = 2.2f;
     t = t - t0;
-    float result = L * std::exp(-B * t) * std::sin(2 * 3.14159 * freq * t);
+    //float result = L * std::exp(-1 * B * t) * std::sin(2 * 3.14159 * freq * t);
+    float result = std::exp(-1 * B * t) * calculateSquareWave(L, freq, t);
+    
     std::vector<float> vec;
     vec.push_back(result);
     if (t > lifeTime) // if life over
