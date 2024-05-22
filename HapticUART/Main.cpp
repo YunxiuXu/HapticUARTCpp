@@ -34,7 +34,7 @@ int main()
     std::cin >> userInput;
     if (userInput == '0') {
         std::cout << "right hand" << std::endl;
-        ComNum = "\\\\.\\COM5";
+        ComNum = "\\\\.\\COM13";
         port = 1233;
     }
     else{
@@ -172,7 +172,7 @@ int main()
                 }
             }
         }
-        const float powerScale = 1.0; // for higher power
+        const float powerScale = 1.1; // for higher power
         for (int num = 0; num < motorNum; num++) { //最终电流转换为电机控制参数
             int outputCurrent;
             if (motorCurrentValue[num] > 250)
