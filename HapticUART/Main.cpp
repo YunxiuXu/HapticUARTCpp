@@ -34,12 +34,12 @@ int main()
     std::cin >> userInput;
     if (userInput == '0') {
         std::cout << "right hand" << std::endl;
-        ComNum = "\\\\.\\COM13";
+        ComNum = "\\\\.\\COM5";
         port = 1233;
     }
     else{
         std::cout << "left hand" << std::endl;
-        ComNum = "\\\\.\\COM14";
+        ComNum = "\\\\.\\COM4";
         port = 1234;
     }
 
@@ -56,7 +56,7 @@ int main()
 
     // 创建新线程并运行printHelloWorld函数
     std::thread printThread(socketThread);
-    float linearFrictionFrequency = 80, rotationalFrictionFrequency = 150;
+    float linearFrictionFrequency = 180, rotationalFrictionFrequency = 350;
 
     // Initialize the Kalman filter
 
@@ -89,19 +89,18 @@ int main()
                     auto receivedCurrentValue = ((int)v[2] << 8) + (int)v[3];
                     motorBaseCurrentValue[(int)v[1]] = 0;
                     motorBaseCurrentValue[(int)v[1]] = receivedCurrentValue; // ! Not+=, because Unity may send multiple packages, so 0x01 must write at front
-                   
                     v[0] = 0xFF; //life over flag
 
                 }
                 else if (v[0] == 0x02) {
                     
                     auto receivedCurrentValue = ((int)v[4] << 8) + (int)v[5];
-                    auto result = basicCollision(v[2], receivedCurrentValue, 280, 80, t_global); //  basicCollision(float t0, float L, float B, float freq, float t)
+                    auto result = basicCollision(v[2], receivedCurrentValue * 160, 111, 80, t_global); //  basicCollision(float t0, float L, float B, float freq, float t)
                     //  functionPoolVector.push_back({0x02, (float)oneCommand[1], t_global, 14, (float)oneCommand[2], (float)oneCommand[3], 67 })
                     //if (motorCurrentValue[(int)v[1]] > 256)
                     //    motorCurrentValue[(int)v[1]] = 256;
                     //std::cout << receivedCurrentValue << std::endl;
-                    motorCurrentValue[(int)v[1]] += 1 * receivedCurrentValue * result[0]; //motor No. , must float to int
+                    motorCurrentValue[(int)v[1]] += result[0]; //motor No. , must float to int
 
                    // if (motorCurrentValue[(int)v[1]] < 0)
                    //     motorCurrentValue[(int)v[1]] = 0;
@@ -113,10 +112,10 @@ int main()
                 else if (v[0] == 0x03) { //for linear friction
                     auto receivedCurrentValue = ((int)v[2] << 8) + (int)v[3];
                     auto result = 0;
-                    result = receivedCurrentValue * 3;
+                    result = receivedCurrentValue * 10;
 
                     auto receivedVelocity = ((int)v[4] << 8) + (int)v[5];
-                    linearFrictionFrequency = 20 + receivedVelocity * 0.5;
+                    linearFrictionFrequency = 60 + receivedVelocity * 0.7;
                     if(linearFrictionFrequency > 500)
                         linearFrictionFrequency = 500;
                     //result = calculateSin(receivedCurrentValue, 40, 0, t_global_continus) * 0.2;
@@ -127,9 +126,6 @@ int main()
                     //}
                     //motorBaseCurrentValue[(int)v[1]] += result; // ! Not+=, because Unity may send multiple packages, so 0x01 must write at front
 
-                    //if ((int)v[1] == 5) {
-                        //std::cout << result << std::endl;
-                    //}
                     linearAmplitute[(int)v[1]] = result;
                     //motorBaseCurrentValue[0] *= result;
                     v[0] = 0xFF; //life over flag
@@ -137,7 +133,7 @@ int main()
                 else if (v[0] == 0x04) { //for angular friction
                     auto receivedCurrentValue = ((int)v[2] << 8) + (int)v[3];
                     auto result = 0;
-                    result = receivedCurrentValue * 3;
+                    result = receivedCurrentValue * 6;
                     auto receivedVelocity = ((int)v[4] << 8) + (int)v[5];
                     //std::cout << receivedVelocity << std::endl;
                     //rotationalFrictionFrequency = receivedVelocity * 10; //look like 0 to 50, so *10 for 500Hz 效果不好，不折腾了
@@ -172,41 +168,39 @@ int main()
                 }
             }
         }
-        const float powerScale = 1.1; // for higher power
+        const float powerScale = 0.55; // for higher power
         for (int num = 0; num < motorNum; num++) { //最终电流转换为电机控制参数
             int outputCurrent;
             if (motorCurrentValue[num] > 250)
-                if (motorBaseCurrentValue[num] > 80)
-                    motorBaseCurrentValue[num] = 80;
+                if (motorBaseCurrentValue[num] > 120)
+                    motorBaseCurrentValue[num] = 120;
             outputCurrent = motorCurrentValue[num] * powerScale + motorBaseCurrentValue[num] * powerScale;
             
 
             if (outputCurrent > 300 * powerScale) //according to 612 motor max around 300
                 outputCurrent = 300 * powerScale;
-            else if (outputCurrent < -300 * powerScale)
-                outputCurrent = -300 * powerScale;
-            if (num == 1)
-                outputCurrent *= -1.2;
+            //if (num == 1)
+            //    outputCurrent *= -1.2;
 
             if (isCooling[num] == 0 && motorQ[num] > MaxQ) //overHeat and not cooling
             {
                 
                 isCooling[num] = 1;
             }
-
+            //std::cout << "a:" << motorQ[3] << std::endl;
             if (isCooling[num] == 1)
             {
-                std::cout << "overheat:" << motorQ[num] << std::endl;
-                outputCurrent /= 3;
-                if (motorQ[num] <= 0)
-                    isCooling[num] = 0;
+                //std::cout << "overheat:" << motorQ[num] << std::endl;
+                //motorBaseCurrentValue[num] = 0;
+                //if (motorQ[num] <= 1)
+                //    isCooling[num] = 0;
             }
                 
 
 
             auto result = intToHexProtocol(outputCurrent);
 
-            motorQ[num] += outputCurrent * outputCurrent / 1000 - DiffuseQ; // I2RDeltaT - DeltaT, omit somevalues
+            motorQ[num] += motorBaseCurrentValue[num] * motorBaseCurrentValue[num] / 1000 - DiffuseQ; // I2RDeltaT - DeltaT, omit somevalues
             if (motorQ[num] < 0)
                 motorQ[num] = 0;
             //if(num == 2)

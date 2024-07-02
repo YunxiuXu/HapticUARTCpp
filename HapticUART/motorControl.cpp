@@ -5,8 +5,8 @@ int motorCurrentValue[20] = { 0 };
 int motorBaseCurrentValue[20] = { 0 };
 float linearAmplitute[20] = { 0 }, rotationalAmplitute[20] = { 0 }; //save value for square waveform realtime
 int motorQ[20] = { 0 };
-int DiffuseQ = 1000;
-int MaxQ = 1260000000;
+int DiffuseQ = 80;
+int MaxQ = 1200000;
 bool isCooling[20] = { 0 };
 
 int uchar_to_int(unsigned char high, unsigned char low)
