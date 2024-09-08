@@ -70,6 +70,15 @@ int main()
 
         float linearFrictionSquareValue = calculateSquareWave(1, linearFrictionFrequency, t_global_continus);
         float rotationalFrictionSquareValue = calculateSquareWave(1, rotationalFrictionFrequency, t_global_continus);
+
+        double sinamplitude = 1;  // 幅值
+        double sinfrequency = 5.0;  // 频率(赫兹)
+        float sinVib = (sinamplitude * sin(2 * M_PI * sinfrequency * t_global_continus) + sinamplitude);
+
+        
+        
+
+
         for (int i = 0; i < 8; i++) {
             linearFricSquare[i] = linearFrictionSquareValue; //load 
             rotationalFricSquare[i] = rotationalFrictionSquareValue;
@@ -88,7 +97,10 @@ int main()
                 if (v[0] == 0x01) {
                     auto receivedCurrentValue = ((int)v[2] << 8) + (int)v[3];
                     motorBaseCurrentValue[(int)v[1]] = 0;
-                    motorBaseCurrentValue[(int)v[1]] = receivedCurrentValue; // ! Not+=, because Unity may send multiple packages, so 0x01 must write at front
+                    motorBaseCurrentValue[(int)v[1]] = receivedCurrentValue * 0.1; // ! Not+=, because Unity may send multiple packages, so 0x01 must write at front
+                    
+                 
+                    
                     v[0] = 0xFF; //life over flag
 
                 }
@@ -141,15 +153,58 @@ int main()
                     rotationalAmplitute[(int)v[1]] = result;
                     v[0] = 0xFF; //life over flag
                 }
+                else if (v[0] == 0x06) { //double motor Tengential
+                    auto receivedCurrentValue = ((int)v[2] << 8) + (int)v[3];
+                    float scale = 1;
+                    //std::cout << receivedCurrentValue << std::endl;
+                    if (v[4] == 0x01)
+                    {
+                        motorBaseCurrentValue[(int)v[1]] = (receivedCurrentValue * scale);
+                    }
+                    else if (v[4] == 0x00)
+                    {
+                        motorBaseCurrentValue[(int)v[1]] = -(receivedCurrentValue * scale);
+                    }
+                    else {
+                        motorBaseCurrentValue[(int)v[1]] = 0;
+                        //motorBaseCurrentValue[(int)v[1] + 2] = 0;
+                    }
+                    v[0] = 0xFF; //life over flag
+                }
+                //for double motors
+                //else if (v[0] == 0x06) { //double motor Tengential
+                //    auto receivedCurrentValue = ((int)v[2] << 8) + (int)v[3];
+                //    float scale = 2;
+                //    //std::cout << receivedCurrentValue << std::endl;
+                //    if (v[4] == 0x01)
+                //    {
+                //        //motorBaseCurrentValue[(int)v[1]] = -(receivedCurrentValue * scale * sinVib + 60);
+                //        motorBaseCurrentValue[(int)v[1]] = 0;
+                //        motorBaseCurrentValue[(int)v[1] + 2] = (receivedCurrentValue * scale);
+                //    }
+                //    else if (v[4] == 0x00)
+                //    {
+                //        motorBaseCurrentValue[(int)v[1]] = -(receivedCurrentValue * scale);
+                //        motorBaseCurrentValue[(int)v[1] + 2] = 0;
+                //        //motorBaseCurrentValue[(int)v[1] + 2] = -(receivedCurrentValue * scale * sinVib + 60);
+                //    }
+                //    else {
+                //        motorBaseCurrentValue[(int)v[1]] = 0;
+                //        motorBaseCurrentValue[(int)v[1] + 2] = 0;
+                //    }
+                //    v[0] = 0xFF; //life over flag
+                //}
 
 
             }
 
+            
+            //std::cout << linearAmplitute[4] << std::endl;
+            //linearAmplitute[4] = 0;
             for (int i = 0; i < 8; i++) {
                 motorCurrentValue[i] += linearFricSquare[i] * 2 * linearAmplitute[i];
                 motorCurrentValue[i] += rotationalFricSquare[i] * 2 * rotationalAmplitute[i];
-
-                
+             
             }
 
             //auto result = calculateSin(20, 30, 0, t_global1) - 40;
@@ -168,19 +223,31 @@ int main()
                 }
             }
         }
-        const float powerScale = 0.55; // for higher power
+
+
+        
+
+
+        const float powerScale = 1; // for higher power
         for (int num = 0; num < motorNum; num++) { //最终电流转换为电机控制参数
             int outputCurrent;
-            if (motorCurrentValue[num] > 250)
-                if (motorBaseCurrentValue[num] > 120)
-                    motorBaseCurrentValue[num] = 120;
-            outputCurrent = motorCurrentValue[num] * powerScale + motorBaseCurrentValue[num] * powerScale;
-            
+  
+            outputCurrent = (motorBaseCurrentValue[num] + motorCurrentValue[num]) * powerScale;
+            //if (num == 4)
+            //  std::cout << outputCurrent << std::endl;
 
-            if (outputCurrent > 300 * powerScale) //according to 612 motor max around 300
-                outputCurrent = 300 * powerScale;
-            //if (num == 1)
-            //    outputCurrent *= -1.2;
+            if (outputCurrent > 200)
+            {
+                std::cout << "exceed" << outputCurrent << std::endl;
+                outputCurrent = 200;
+            }
+                
+            else if (outputCurrent < -200)
+            {
+                std::cout << "exceed" << outputCurrent << std::endl;
+                outputCurrent = -200;
+            }
+                
 
             if (isCooling[num] == 0 && motorQ[num] > MaxQ) //overHeat and not cooling
             {
@@ -196,8 +263,7 @@ int main()
                 //    isCooling[num] = 0;
             }
                 
-
-
+            
             auto result = intToHexProtocol(outputCurrent);
 
             motorQ[num] += motorBaseCurrentValue[num] * motorBaseCurrentValue[num] / 1000 - DiffuseQ; // I2RDeltaT - DeltaT, omit somevalues
