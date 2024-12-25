@@ -239,16 +239,16 @@ int main()
             //if (num == 4)
             //  std::cout << outputCurrent << std::endl;
 
-            if (outputCurrent > 200)
+            if (outputCurrent > 220)
             {
                 std::cout << "exceed" << outputCurrent << std::endl;
-                outputCurrent = 200;
+                outputCurrent = 220;
             }
                 
-            else if (outputCurrent < -200)
+            else if (outputCurrent < -220)
             {
                 std::cout << "exceed" << outputCurrent << std::endl;
-                outputCurrent = -200;
+                outputCurrent = -20;
             }
                 
 
