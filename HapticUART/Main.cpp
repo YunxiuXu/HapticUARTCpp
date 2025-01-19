@@ -33,7 +33,7 @@ int main()
     std::cin >> userInput;
     if (userInput == '0') {
         std::cout << "right hand" << std::endl;
-        ComNum = "\\\\.\\COM13";
+        ComNum = "\\\\.\\COM3";
         port = 1233;
     }
     else{
@@ -99,7 +99,8 @@ int main()
 
                     if (motorCurrentValue[(int)v[1]] > 256)
                         motorCurrentValue[(int)v[1]] = 256;
-
+                    
+                    
                     motorCurrentValue[(int)v[1]] += 0.5 * receivedCurrentValue * result[0]; //motor No. , must float to int
 
                     if (motorCurrentValue[(int)v[1]] < 0)
@@ -152,17 +153,17 @@ int main()
         for (int num = 0; num < motorNum; num++) { //最终电流转换为电机控制参数
             last_motorBaseCurrentValue[num] += tilt_motorBaseCurrentValue[num];
             
-            if (num == 2) {
-                // 计算正弦波的值
-                double frequency = 90; // 可以调节的频率，单位是Hz
-                double sin_value = amplitude * std::sin(2 * PI * frequency * elapsed_time) + 1;
-                sin_value = sin_value * 160 + 40;
-                // 使用正弦波的值（例如，输出）
-                //std::cout << sin_value << std::endl;
+            //if (num == 2) {
+            //    // 计算正弦波的值
+            //    double frequency = 90; // 可以调节的频率，单位是Hz
+            //    double sin_value = amplitude * std::sin(2 * PI * frequency * elapsed_time) + 1;
+            //    sin_value = sin_value * 160 + 40;
+            //    // 使用正弦波的值（例如，输出）
+            //    //std::cout << sin_value << std::endl;
 
-                motorCurrentValue[2] = sin_value;
-               motorCurrentValue[2] = 0;
-            }
+            //    motorCurrentValue[2] = sin_value;
+            //   motorCurrentValue[2] = 0;
+            //}
                 
 
             auto outputCurrent = motorCurrentValue[num] + last_motorBaseCurrentValue[num];
@@ -180,7 +181,7 @@ int main()
             }
             
             if (num == 2) {
-                std::cout << outputCurrent << std::endl;
+                //std::cout << outputCurrent << std::endl;
             }
             
 
