@@ -34,7 +34,7 @@ int main()
     std::cin >> userInput;
     if (userInput == '0') {
         std::cout << "right hand" << std::endl;
-        ComNum = "\\\\.\\COM5";
+        ComNum = "\\\\.\\COM3";
         port = 1233;
     }
     else{
@@ -56,7 +56,7 @@ int main()
 
     // 创建新线程并运行printHelloWorld函数
     std::thread printThread(socketThread);
-    float linearFrictionFrequency = 180, rotationalFrictionFrequency = 350;
+    float linearFrictionFrequency = 90, rotationalFrictionFrequency = 350;
 
     // Initialize the Kalman filter
 
@@ -95,7 +95,7 @@ int main()
                 else if (v[0] == 0x02) {
                     
                     auto receivedCurrentValue = ((int)v[4] << 8) + (int)v[5];
-                    auto result = basicCollision(v[2], receivedCurrentValue * 160, 111, 80, t_global); //  basicCollision(float t0, float L, float B, float freq, float t)
+                    auto result = basicCollision(v[2], receivedCurrentValue * 60, 111, 120, t_global); //  basicCollision(float t0, float L, float B, float freq, float t)
                     //  functionPoolVector.push_back({0x02, (float)oneCommand[1], t_global, 14, (float)oneCommand[2], (float)oneCommand[3], 67 })
                     //if (motorCurrentValue[(int)v[1]] > 256)
                     //    motorCurrentValue[(int)v[1]] = 256;
@@ -114,17 +114,10 @@ int main()
                     auto result = 0;
                     result = receivedCurrentValue * 10;
 
-                    auto receivedVelocity = ((int)v[4] << 8) + (int)v[5];
-                    linearFrictionFrequency = 60 + receivedVelocity * 0.7;
-                    if(linearFrictionFrequency > 500)
-                        linearFrictionFrequency = 500;
-                    //result = calculateSin(receivedCurrentValue, 40, 0, t_global_continus) * 0.2;
-                    //if (result > 50)
-                    //{
-                    //    if (motorBaseCurrentValue[(int)v[1]] > 128)
-                    //        motorBaseCurrentValue[(int)v[1]] = 128;
-                    //}
-                    //motorBaseCurrentValue[(int)v[1]] += result; // ! Not+=, because Unity may send multiple packages, so 0x01 must write at front
+                    //auto receivedVelocity = ((int)v[4] << 8) + (int)v[5];
+                    //linearFrictionFrequency = 60 + receivedVelocity * 0.7;
+                    //if(linearFrictionFrequency > 500)
+                    //    linearFrictionFrequency = 500;
 
                     linearAmplitute[(int)v[1]] = result;
                     //motorBaseCurrentValue[0] *= result;
@@ -168,12 +161,12 @@ int main()
                 }
             }
         }
-        const float powerScale = 0.55; // for higher power
+        const float powerScale = 1; // for higher power
         for (int num = 0; num < motorNum; num++) { //最终电流转换为电机控制参数
             int outputCurrent;
-            if (motorCurrentValue[num] > 250)
-                if (motorBaseCurrentValue[num] > 120)
-                    motorBaseCurrentValue[num] = 120;
+            if (linearAmplitute[num] + rotationalAmplitute[num] > 100)
+                if (motorBaseCurrentValue[num] > 100)
+                    motorBaseCurrentValue[num] = 100;
             outputCurrent = motorCurrentValue[num] * powerScale + motorBaseCurrentValue[num] * powerScale;
             
 
