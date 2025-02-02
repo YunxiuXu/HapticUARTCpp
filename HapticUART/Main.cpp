@@ -39,7 +39,7 @@ int main()
     }
     else{
         std::cout << "left hand" << std::endl;
-        ComNum = "\\\\.\\COM4";
+        ComNum = "\\\\.\\COM5";
         port = 1234;
     }
 
