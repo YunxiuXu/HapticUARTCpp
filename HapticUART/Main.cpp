@@ -34,7 +34,7 @@ int main()
     std::cin >> userInput;
     if (userInput == '0') {
         std::cout << "right hand" << std::endl;
-        ComNum = "\\\\.\\COM5";
+        ComNum = "\\\\.\\COM4";
         port = 1233;
     }
     else{
@@ -107,7 +107,7 @@ int main()
                 else if (v[0] == 0x02) {
                     
                     auto receivedCurrentValue = ((int)v[4] << 8) + (int)v[5];
-                    auto result = basicCollision(v[2], receivedCurrentValue * 160, 111, 120, t_global); //  basicCollision(float t0, float L, float B, float freq, float t)
+                    auto result = basicCollision(v[2], receivedCurrentValue * 1, 111, 120, t_global); //  basicCollision(float t0, float L, float B, float freq, float t)
                     //  functionPoolVector.push_back({0x02, (float)oneCommand[1], t_global, 14, (float)oneCommand[2], (float)oneCommand[3], 67 })
                     //if (motorCurrentValue[(int)v[1]] > 256)
                     //    motorCurrentValue[(int)v[1]] = 256;
