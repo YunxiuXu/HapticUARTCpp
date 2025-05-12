@@ -11,6 +11,7 @@ extern int motorQ[20]; //save Motor's head(of course apporximately)
 extern int DiffuseQ;
 extern int MaxQ;
 extern bool isCooling[20];
+extern bool motorBaseSign[20]; // 记录每路基准电流的正负符号
 
 
 void pushValue2Current();

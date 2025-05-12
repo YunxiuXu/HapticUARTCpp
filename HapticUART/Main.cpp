@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <chrono>
 #include <thread>
 #include <cmath>
@@ -33,7 +33,7 @@ int main()
     std::cin >> userInput;
     if (userInput == '0') {
         std::cout << "right hand" << std::endl;
-        ComNum = "\\\\.\\COM3";
+        ComNum = "\\\\.\\COM9";
         port = 1233;
     }
     else{
@@ -81,18 +81,34 @@ int main()
             for (std::vector<float>& v : functionPoolVector) {
                 
                 if (v[0] == 0x01) {
-                    auto receivedCurrentValue = ((int)v[2] << 8) + (int)v[3];
-                    //motorBaseCurrentValue[(int)v[1]] = 0;
-                    last_motorBaseCurrentValue[(int)v[1]] = motorBaseCurrentValue[(int)v[1]];
-                    motorBaseCurrentValue[(int)v[1]] = receivedCurrentValue; // ! Not+=, because Unity may send multiple packages, so 0x01 must write at front
-                    
-                    tilt_motorBaseCurrentValue[(int)v[1]] = ((float)motorBaseCurrentValue[(int)v[1]] - (float)last_motorBaseCurrentValue[(int)v[1]]) / (1000 * 0.02);;
+                    // 先打印接收到的两个字节（16 进制），确认下到底收到了什么  
+                    uint8_t bHigh = static_cast<uint8_t>(v[2]);
+                    uint8_t bLow = static_cast<uint8_t>(v[3]);
+                    // 原来是：  
+                    // auto receivedCurrentValue = ((int)v[2] << 8) + (int)v[3];  
 
-                    //if ((int)v[1] == 5) {
-                    //    std::cout << receivedCurrentValue << std::endl;
-                    //}
-                    v[0] = 0xFF; //life over flag
-                    //std::cout << motorBaseCurrentValue[(int)v[1]] << std::endl;
+                    // 改成：  
+                    // 1) 先把两字节拼成无符号 16 位数  
+                    uint16_t raw16 = (uint16_t(bHigh) << 8) | uint16_t(bLow);
+                    // 2) 再把它 reinterpret 为有符号 16 位  
+                    int16_t  rawSigned = static_cast<int16_t>(raw16);
+                    int      receivedCurrentValue = static_cast<int>(rawSigned);
+
+                    bool sign = (receivedCurrentValue < 0);
+                    motorBaseSign[(int)v[1]] = sign;
+                    int absReceived = sign ? -receivedCurrentValue : receivedCurrentValue;
+
+                    
+
+                    // 下面是你的值更新逻辑  
+                    last_motorBaseCurrentValue[(int)v[1]] = motorBaseCurrentValue[(int)v[1]];
+                    motorBaseCurrentValue[(int)v[1]] = absReceived;
+                    tilt_motorBaseCurrentValue[(int)v[1]] =
+                        (motorBaseCurrentValue[(int)v[1]] - last_motorBaseCurrentValue[(int)v[1]])
+                        / (1000.0f * 0.02f);
+
+                    v[0] = 0xFF; // life over flag  
+
                 }
                 else if (v[0] == 0x02) { //Collision
                     auto receivedCurrentValue = ((int)v[4] << 8) + (int)v[5];
@@ -128,7 +144,7 @@ int main()
                             motorBaseCurrentValue[(int)v[1]] = 256;
                     }
                     motorBaseCurrentValue[(int)v[1]] += result; // ! Not+=, because Unity may send multiple packages, so 0x01 must write at front
-
+                    std::cout << receivedCurrentValue << std::endl;
 
                     v[0] = 0xFF; //life over flag
                 }
@@ -179,7 +195,10 @@ int main()
             }
                 
 
-            auto outputCurrent = motorCurrentValue[num] + last_motorBaseCurrentValue[num];
+            // 应用之前记录的符号，将基准电流设为正负值
+            int baseVal = last_motorBaseCurrentValue[num];
+            if (motorBaseSign[num]) baseVal = -baseVal;
+            auto outputCurrent = motorCurrentValue[num] + baseVal;
 
             //if (isCooling[num] == 0 && motorQ[num] > MaxQ) //overHeat and not cooling
             //{

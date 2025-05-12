@@ -7,6 +7,8 @@ int motorBaseCurrentValue[20] = { 0 };
 int last_motorBaseCurrentValue[20] = { 0 };
 float tilt_motorBaseCurrentValue[20] = { 0 };
 
+bool motorBaseSign[20] = { false }; // 记录每路基准电流的正负符号
+
 int motorQ[20] = { 0 };
 int DiffuseQ = 100;
 int MaxQ = 300000;
