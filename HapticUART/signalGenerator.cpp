@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <cmath>
 #include <mutex>
 #include "signalGenerator.h"

@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <chrono>
 #include <thread>
 #include <cmath>
@@ -34,7 +34,7 @@ int main()
     std::cin >> userInput;
     if (userInput == '0') {
         std::cout << "right hand" << std::endl;
-        ComNum = "\\\\.\\COM3";
+        ComNum = "\\\\.\\COM9";
         port = 1233;
     }
     else{
