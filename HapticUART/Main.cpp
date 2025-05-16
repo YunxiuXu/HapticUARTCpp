@@ -3,6 +3,7 @@
 #include <thread>
 #include <cmath>
 #include <mutex>
+#include <atomic>
 #include "serial.h"
 #include "GetSocket.h"
 #include "motorControl.h"
@@ -11,10 +12,18 @@
 
 #define M_PI 3.14159265
 
+// Flag to indicate client disconnection
+std::atomic<bool> clientDisconnected(false);
+
 //if you want to change communication protocol, first, change main's if 0x0X, they goto GetSocket.cpp, change, and don't froget change Unity's firceHapticSender
 // 打印函数
 void socketThread() {
     runServer();
+}
+
+// Function to handle client disconnection
+void handleClientDisconnect() {
+    clientDisconnected.store(true);
 }
 
 float t_global = 0, t_global_continus = 0; //continus means not reset to 0
@@ -68,6 +77,18 @@ int main()
         next_time += std::chrono::milliseconds(1);
         double elapsed_time = std::chrono::duration<double>(next_time - start_time).count();
 
+        // Check if client has disconnected and reset all motor values
+        if (clientDisconnected.load()) {
+            clearMotorCurrentValue();
+            clearMotorBaseCurrentValue();
+            // Additional zeroing for all motor-related values
+            std::memset(last_motorBaseCurrentValue, 0, sizeof(last_motorBaseCurrentValue));
+            std::memset(motorBaseSign, 0, sizeof(motorBaseSign));
+            std::memset(val, 0, sizeof(val));
+            // Reset the flag
+            clientDisconnected.store(false);
+        }
+
         float linearFrictionSquareValue = calculateSquareWave(1, linearFrictionFrequency, t_global_continus);
         float rotationalFrictionSquareValue = calculateSquareWave(1, rotationalFrictionFrequency, t_global_continus);
         for (int i = 0; i < 8; i++) {
@@ -86,10 +107,33 @@ int main()
             for (std::vector<float>& v : functionPoolVector) {
                 
                 if (v[0] == 0x01) {
-                    auto receivedCurrentValue = ((int)v[2] << 8) + (int)v[3];
-                    motorBaseCurrentValue[(int)v[1]] = 0;
-                    motorBaseCurrentValue[(int)v[1]] = receivedCurrentValue; // ! Not+=, because Unity may send multiple packages, so 0x01 must write at front
-                    v[0] = 0xFF; //life over flag
+                    // 先打印接收到的两个字节（16 进制），确认下到底收到了什么  
+                    uint8_t bHigh = static_cast<uint8_t>(v[2]);
+                    uint8_t bLow = static_cast<uint8_t>(v[3]);
+                    // 原来是：  
+                    // auto receivedCurrentValue = ((int)v[2] << 8) + (int)v[3];  
+
+                    // 改成：  
+                    // 1) 先把两字节拼成无符号 16 位数  
+                    uint16_t raw16 = (uint16_t(bHigh) << 8) | uint16_t(bLow);
+                    // 2) 再把它 reinterpret 为有符号 16 位  
+                    int16_t  rawSigned = static_cast<int16_t>(raw16);
+                    int      receivedCurrentValue = static_cast<int>(rawSigned);
+
+                    bool sign = (receivedCurrentValue < 0);
+                    motorBaseSign[(int)v[1]] = sign;
+                    int absReceived = sign ? -receivedCurrentValue : receivedCurrentValue;
+
+
+
+                    // 下面是你的值更新逻辑  
+                    last_motorBaseCurrentValue[(int)v[1]] = motorBaseCurrentValue[(int)v[1]];
+                    motorBaseCurrentValue[(int)v[1]] = absReceived;
+                    tilt_motorBaseCurrentValue[(int)v[1]] =
+                        (motorBaseCurrentValue[(int)v[1]] - last_motorBaseCurrentValue[(int)v[1]])
+                        / (1000.0f * 0.02f);
+
+                    v[0] = 0xFF; // life over flag  
 
                 }
                 else if (v[0] == 0x02) {
@@ -167,8 +211,11 @@ int main()
             if (linearAmplitute[num] + rotationalAmplitute[num] > 100)
                 if (motorBaseCurrentValue[num] > 100)
                     motorBaseCurrentValue[num] = 100;
-            outputCurrent = motorCurrentValue[num] * powerScale + motorBaseCurrentValue[num] * powerScale;
             
+            int baseVal = last_motorBaseCurrentValue[num];
+            if (motorBaseSign[num]) baseVal = -baseVal;
+            outputCurrent = motorCurrentValue[num] + baseVal;
+
 
             if (outputCurrent > 300 * powerScale) //according to 612 motor max around 300
                 outputCurrent = 300 * powerScale;
@@ -205,7 +252,7 @@ int main()
         
         
         //unsigned char data_to_sends[] = { 0x31, 0, 0, 0, 0, 0, 0, 0,0,0, 0, val[10], val[11], 0, 0, val[14], val[15]};
-        unsigned char data_to_sends[] = { 0x31, val[0], val[1], val[2], val[3], val[4], val[5], val[6], val[7], val[8], val[9], val[10], val[11], val[12], val[13], val[14], val[15], 0, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0, 0 , 0 , 0 , 0 , 0, 0 , 0 , 0 , 0 , 0 , 0, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0  , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0, 0, 0 , 0, 0 , 0 , 0 , 0 , 0 , 0, 0 , 0 , 0 , 0  , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0  , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0  , 0 , 0  , 0 , 0 , 0 , 0 , 0 , 0, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 };
+        unsigned char data_to_sends[] = { 0x31, val[0], val[1], val[2], val[3], val[4], val[5], val[6], val[7], val[8], val[9], val[10], val[11], val[12], val[13], val[14], val[15], 0, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0, 0 , 0 , 0 , 0 , 0, 0 , 0 , 0 , 0 , 0 , 0, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0  , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0, 0, 0 , 0, 0 , 0 , 0 , 0 , 0 , 0, 0 , 0 , 0 , 0  , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0  , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0  , 0 , 0  , 0 , 0 , 0 , 0 , 0 , 0, 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 };
         //for (int i = 0; i < sizeof(data_to_sends); i++) {
         //    if (i == 0)
         //        data_to_sends[0] = 0x31;

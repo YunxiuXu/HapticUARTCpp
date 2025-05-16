@@ -4,10 +4,12 @@
 #include <iostream>
 #include <WS2tcpip.h>
 #include <string>
+#include <atomic>
 
 #pragma comment (lib, "ws2_32.lib")
 
 extern float t_global;
+extern std::atomic<bool> clientDisconnected;
 int port;
 
 void runServer()
@@ -96,6 +98,8 @@ void runServer()
             if (bytesReceived == SOCKET_ERROR)
             {
                 std::cerr << "Error in recv(). Quitting" << std::endl;
+                clearMotorBaseCurrentValue();
+                handleClientDisconnect();
                 break;
             }
 
@@ -103,7 +107,7 @@ void runServer()
             {
                 std::cout << "Client disconnected " << std::endl;
                 clearMotorBaseCurrentValue();
-
+                handleClientDisconnect();
                 break;
             }
 

@@ -8,6 +8,11 @@ int motorQ[20] = { 0 };
 int DiffuseQ = 80;
 int MaxQ = 1200000;
 bool isCooling[20] = { 0 };
+int last_motorBaseCurrentValue[20] = { 0 };
+float tilt_motorBaseCurrentValue[20] = { 0 };
+
+bool motorBaseSign[20] = { false }; // 记录每路基准电流的正负符号
+
 
 int uchar_to_int(unsigned char high, unsigned char low)
 {

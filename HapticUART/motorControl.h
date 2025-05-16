@@ -10,6 +10,10 @@ extern int DiffuseQ;
 extern int MaxQ;
 extern bool isCooling[20];
 extern float linearAmplitute[20], rotationalAmplitute[20]; //save value for square waveform realtime
+extern int last_motorBaseCurrentValue[20];
+extern float tilt_motorBaseCurrentValue[20];
+
+extern bool motorBaseSign[20]; // 记录每路基准电流的正负符号
 
 
 void pushValue2Current();

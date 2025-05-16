@@ -6,5 +6,6 @@ extern int data;
 extern int port;
 
 void runServer();
+void handleClientDisconnect();
 
 #endif
